@@ -15,6 +15,11 @@ const valid = {
   R2_SECRET_ACCESS_KEY: "s",
   R2_BUCKET: "b",
   REDIS_URL: "redis://localhost:6379",
+  SOKETI_HOST: "realtime.mentoriit.com",
+  SOKETI_KEY: "app-key",
+  SOKETI_SECRET: "app-secret",
+  RESEND_API_KEY: "re_xxx",
+  RESEND_FROM: "noreply@mentoriit.com",
 };
 
 describe("validateEnv", () => {
@@ -48,6 +53,34 @@ describe("validateEnv", () => {
       AUTH_SECRET: valid.AUTH_SECRET,
     };
     expect(validateEnv(dev).ok).toBe(true);
+  });
+
+  it("in production, missing SOKETI_KEY fails the boot (H1)", () => {
+    const { SOKETI_KEY, ...without } = valid;
+    void SOKETI_KEY;
+    const r = validateEnv(without);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.some((e) => e.includes("SOKETI_KEY"))).toBe(true);
+  });
+
+  it("in production, missing RESEND_API_KEY fails the boot (H1)", () => {
+    const { RESEND_API_KEY, ...without } = valid;
+    void RESEND_API_KEY;
+    expect(validateEnv(without).ok).toBe(false);
+  });
+
+  it("in production, RESEND_FROM must be a valid email (H1)", () => {
+    const r = validateEnv({ ...valid, RESEND_FROM: "not-an-email" });
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects obvious default AUTH_SECRET values (M7)", () => {
+    expect(validateEnv({ ...valid, AUTH_SECRET: "change-me-" + "x".repeat(25) }).ok).toBe(
+      false,
+    );
+    expect(validateEnv({ ...valid, AUTH_SECRET: "test-secret-" + "x".repeat(24) }).ok).toBe(
+      false,
+    );
   });
 
   it("in production, ALL critical vars are required", () => {
