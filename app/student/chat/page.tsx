@@ -31,7 +31,7 @@ const mockMessages = [
 export default function StudentChat() {
   const now = new Date();
   return (
-    <Shell active="chat" pageCode="S.03 — Mentor chat" pageTitle={mockMentor.fullName}>
+    <Shell role="student" active="chat" pageCode="S.03 — Mentor chat" pageTitle={mockMentor.fullName}>
       <div className="flex items-center justify-between -mt-2">
         <div className="text-sm text-[var(--ink-soft)]">
           {mockMentor.institute} · {formatLastSeen(mockMentor.lastSeenAt, now)}

@@ -19,6 +19,8 @@ const dm = DM_Sans({
 export const metadata = {
   title: "MentorIIT",
   description: "Private mentorship for JEE/IIT aspirants",
+  manifest: "/manifest.json",
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

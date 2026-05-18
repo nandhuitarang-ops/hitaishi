@@ -1,33 +1,67 @@
 import Link from "next/link";
 
+type StudentNav = "dashboard" | "chat" | "sessions" | "resources" | "profile";
+type MentorNav = "dashboard" | "students" | "calendar" | "resources" | "earnings";
+type AdminNav =
+  | "dashboard"
+  | "students"
+  | "mentors"
+  | "sessions"
+  | "payments"
+  | "analytics";
+
 interface ShellProps {
-  active: "dashboard" | "chat" | "sessions" | "resources" | "profile";
+  role: "student" | "mentor" | "admin";
+  active: StudentNav | MentorNav | AdminNav;
   pageCode: string;
   pageTitle: string;
   children: React.ReactNode;
 }
 
-const NAV = [
-  { key: "dashboard", label: "Today", href: "/student/dashboard" },
-  { key: "chat", label: "Chat", href: "/student/chat" },
-  { key: "sessions", label: "Sessions", href: "/student/sessions" },
-  { key: "resources", label: "Resources", href: "/student/resources" },
-  { key: "profile", label: "Profile", href: "/student/profile" },
-] as const;
+const NAV = {
+  student: [
+    { key: "dashboard", label: "Today", href: "/student/dashboard" },
+    { key: "chat", label: "Chat", href: "/student/chat" },
+    { key: "sessions", label: "Sessions", href: "/student/sessions" },
+    { key: "resources", label: "Resources", href: "/student/resources" },
+    { key: "profile", label: "Profile", href: "/student/profile" },
+  ],
+  mentor: [
+    { key: "dashboard", label: "Triage", href: "/mentor/dashboard" },
+    { key: "students", label: "Students", href: "/mentor/students" },
+    { key: "calendar", label: "Calendar", href: "/mentor/calendar" },
+    { key: "resources", label: "Resources", href: "/mentor/resources" },
+    { key: "earnings", label: "Earnings", href: "/mentor/earnings" },
+  ],
+  admin: [
+    { key: "dashboard", label: "Control", href: "/admin/dashboard" },
+    { key: "students", label: "Students", href: "/admin/students" },
+    { key: "mentors", label: "Mentors", href: "/admin/mentors" },
+    { key: "sessions", label: "Sessions", href: "/admin/sessions" },
+    { key: "payments", label: "Payments", href: "/admin/payments" },
+    { key: "analytics", label: "Analytics", href: "/admin/analytics" },
+  ],
+} as const;
 
-export function Shell({ active, pageCode, pageTitle, children }: ShellProps) {
+const ROLE_LABEL = {
+  student: "Student",
+  mentor: "Mentor",
+  admin: "Admin",
+};
+
+export function Shell({ role, active, pageCode, pageTitle, children }: ShellProps) {
+  const items = NAV[role];
+
   return (
     <main className="min-h-screen bg-[var(--paper)] flex justify-center p-3 md:p-8">
-      <div
-        className="w-full max-w-[1100px] bg-[var(--paper)] border border-[var(--rule)]
-                   grid grid-cols-1 md:grid-cols-[56px_1fr] min-h-[calc(100vh-1.5rem)]"
-      >
+      <div className="w-full max-w-[1200px] bg-[var(--paper)] border border-[var(--rule)]
+                      grid grid-cols-1 md:grid-cols-[56px_1fr] min-h-[calc(100vh-1.5rem)]">
         <nav
-          aria-label="Student navigation"
+          aria-label={`${ROLE_LABEL[role]} navigation`}
           className="hidden md:flex flex-col justify-between border-r border-[var(--rule)] py-6"
         >
           <div className="flex flex-col gap-1">
-            {NAV.map((item) => {
+            {items.map((item) => {
               const isActive = item.key === active;
               return (
                 <Link
@@ -36,6 +70,7 @@ export function Shell({ active, pageCode, pageTitle, children }: ShellProps) {
                   className={`relative flex items-center justify-center h-14 italic-serif text-sm
                     ${isActive ? "text-[var(--ink)] font-bold" : "text-[var(--ink-soft)]"}`}
                   aria-current={isActive ? "page" : undefined}
+                  title={item.label}
                 >
                   {item.label[0]}
                   {isActive && (
@@ -58,19 +93,18 @@ export function Shell({ active, pageCode, pageTitle, children }: ShellProps) {
                 {pageTitle}
               </h1>
             </div>
-            <div className="meta hidden md:block">MentorIIT</div>
+            <div className="meta hidden md:block">{ROLE_LABEL[role]}</div>
           </header>
           <div className="rule" aria-hidden />
           {children}
         </section>
 
-        {/* mobile bottom nav */}
         <nav
-          aria-label="Student navigation mobile"
+          aria-label={`${ROLE_LABEL[role]} navigation mobile`}
           className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--paper)] border-t border-[var(--rule)]
                      flex justify-around py-2 z-10"
         >
-          {NAV.map((item) => {
+          {items.map((item) => {
             const isActive = item.key === active;
             return (
               <Link

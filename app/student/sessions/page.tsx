@@ -36,7 +36,7 @@ const mockPast = [
 export default function StudentSessions() {
   const now = new Date();
   return (
-    <Shell active="sessions" pageCode="S.04 — Sessions" pageTitle="Your sessions.">
+    <Shell role="student" active="sessions" pageCode="S.04 — Sessions" pageTitle="Your sessions.">
       <section>
         <div className="meta mb-3">Upcoming</div>
         <ul className="flex flex-col gap-3">

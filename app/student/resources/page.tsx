@@ -47,7 +47,7 @@ const mockResources = [
 
 export default function StudentResources() {
   return (
-    <Shell active="resources" pageCode="S.05 — Resources" pageTitle="Resources library.">
+    <Shell role="student" active="resources" pageCode="S.05 — Resources" pageTitle="Resources library.">
       <div className="flex flex-wrap gap-2 -mt-1">
         {SUBJECTS.map((s, i) => (
           <button

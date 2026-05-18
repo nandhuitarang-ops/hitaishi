@@ -28,7 +28,7 @@ const mockHistory = [
 
 export default function StudentProfile() {
   return (
-    <Shell active="profile" pageCode="S.06 — Profile" pageTitle="Your profile.">
+    <Shell role="student" active="profile" pageCode="S.06 — Profile" pageTitle="Your profile.">
       <article className="flex items-center gap-4 border border-[var(--rule)] p-5">
         <div className="avatar w-16 h-16 text-xl">
           {initials(mockProfile.fullName)}

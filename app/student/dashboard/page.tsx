@@ -33,7 +33,7 @@ export default function StudentDashboard() {
   const greeting = greetingFor(now);
 
   return (
-    <Shell active="dashboard" pageCode="S.02 — Dashboard" pageTitle={`${greeting}, ${mockStudentName}.`}>
+    <Shell role="student" active="dashboard" pageCode="S.02 — Dashboard" pageTitle={`${greeting}, ${mockStudentName}.`}>
       <p className="text-[var(--ink-soft)] max-w-[60ch] -mt-2">
         Three things tonight. Your mentor. Your next session. What landed today.
       </p>
