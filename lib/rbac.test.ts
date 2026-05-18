@@ -9,12 +9,11 @@ describe("resolveRouteAccess", () => {
   });
 
   it("student route requires student role", () => {
-    expect(resolveRouteAccess("/student/dashboard", null).allow).toBe(false);
-    expect(resolveRouteAccess("/student/dashboard", null).redirectTo).toBe("/login");
+    const anon = resolveRouteAccess("/student/dashboard", null);
+    expect(anon).toEqual({ allow: false, redirectTo: "/login" });
     expect(resolveRouteAccess("/student/dashboard", "student").allow).toBe(true);
     const mentor = resolveRouteAccess("/student/dashboard", "mentor");
-    expect(mentor.allow).toBe(false);
-    expect(mentor.redirectTo).toBe("/mentor/dashboard");
+    expect(mentor).toEqual({ allow: false, redirectTo: "/mentor/dashboard" });
   });
 
   it("mentor route requires mentor role", () => {
@@ -36,9 +35,10 @@ describe("resolveRouteAccess", () => {
   it("authenticated user hitting /login is bounced to their portal", () => {
     const roles: Role[] = ["student", "mentor", "admin"];
     for (const r of roles) {
-      const res = resolveRouteAccess("/login", r);
-      expect(res.allow).toBe(false);
-      expect(res.redirectTo).toBe(`/${r}/dashboard`);
+      expect(resolveRouteAccess("/login", r)).toEqual({
+        allow: false,
+        redirectTo: `/${r}/dashboard`,
+      });
     }
   });
 });
