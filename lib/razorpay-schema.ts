@@ -4,10 +4,10 @@ const paymentEntitySchema = z.object({
   id: z.string().min(1),
   order_id: z.string().min(1),
   amount: z.number().int().positive(),
-  currency: z.string().length(3),
+  currency: z.literal("INR"),
   status: z.string(),
   method: z.enum(["upi", "card", "netbanking", "emi"]).optional(),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().pipe(z.string().email()),
   contact: z.string().optional(),
   notes: z.record(z.string()).optional(),
 });
@@ -50,6 +50,7 @@ export type RazorpayEvent =
   | {
       kind: "payment.captured";
       eventId: string;
+      createdAt: number;
       payment: {
         id: string;
         orderId: string;
@@ -63,27 +64,31 @@ export type RazorpayEvent =
   | {
       kind: "payment.failed";
       eventId: string;
+      createdAt: number;
       payment: { id: string; orderId: string; amountInr: number; email: string };
     }
   | {
       kind: "refund.processed";
       eventId: string;
+      createdAt: number;
       refund: { id: string; paymentId: string; amountInr: number };
     }
-  | { kind: "ignored"; eventId: string; rawEvent: string };
+  | { kind: "ignored"; eventId: string; createdAt: number; rawEvent: string };
 
 export function parseRazorpayEvent(raw: unknown): RazorpayEvent {
   const base = baseEventSchema.safeParse(raw);
   if (!base.success) {
     throw new Error(`invalid razorpay event envelope: ${base.error.message}`);
   }
+  const { id: eventId, created_at: createdAt, event } = base.data;
 
-  switch (base.data.event) {
+  switch (event) {
     case "payment.captured": {
       const p = paymentCapturedSchema.parse(raw).payload.payment.entity;
       return {
         kind: "payment.captured",
-        eventId: base.data.id,
+        eventId,
+        createdAt,
         payment: {
           id: p.id,
           orderId: p.order_id,
@@ -99,7 +104,8 @@ export function parseRazorpayEvent(raw: unknown): RazorpayEvent {
       const p = paymentFailedSchema.parse(raw).payload.payment.entity;
       return {
         kind: "payment.failed",
-        eventId: base.data.id,
+        eventId,
+        createdAt,
         payment: {
           id: p.id,
           orderId: p.order_id,
@@ -112,11 +118,12 @@ export function parseRazorpayEvent(raw: unknown): RazorpayEvent {
       const r = refundProcessedSchema.parse(raw).payload.refund.entity;
       return {
         kind: "refund.processed",
-        eventId: base.data.id,
+        eventId,
+        createdAt,
         refund: { id: r.id, paymentId: r.payment_id, amountInr: r.amount },
       };
     }
     default:
-      return { kind: "ignored", eventId: base.data.id, rawEvent: base.data.event };
+      return { kind: "ignored", eventId, createdAt, rawEvent: event };
   }
 }

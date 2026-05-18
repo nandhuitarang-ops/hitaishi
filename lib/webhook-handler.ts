@@ -12,11 +12,14 @@ export interface HandlerResponse {
   body: ApiResponse<ProvisioningResult>;
 }
 
+const REPLAY_WINDOW_SECONDS = 24 * 60 * 60;
+
 export async function handleRazorpayWebhook(
   rawBody: string,
   signatureHeader: string | null,
   secret: string,
   store: ProvisioningStore,
+  now: () => Date = () => new Date(),
 ): Promise<HandlerResponse> {
   if (!signatureHeader) {
     return { status: 401, body: fail("missing signature") };
@@ -40,12 +43,20 @@ export async function handleRazorpayWebhook(
     return { status: 400, body: fail(msg) };
   }
 
+  const ageSec = Math.floor(now().getTime() / 1000) - event.createdAt;
+  if (ageSec > REPLAY_WINDOW_SECONDS) {
+    return { status: 401, body: fail("event too old (replay window)") };
+  }
+
   try {
     const result = await provisionStudentAccess(event, store);
     return { status: 200, body: ok(result) };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "provisioning failed";
-    // 500 — caller should retry. webhook_events row left unprocessed.
-    return { status: 500, body: fail(msg) };
+    // Don't leak internal errors to Razorpay/clients.
+    if (process.env.NODE_ENV !== "production" && err instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error("provisioning error:", err);
+    }
+    return { status: 500, body: fail("internal error") };
   }
 }

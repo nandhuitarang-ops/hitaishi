@@ -117,6 +117,7 @@ function captured(eventId: string, email = "s@x.com"): RazorpayEvent {
   return {
     kind: "payment.captured",
     eventId,
+    createdAt: Math.floor(Date.now() / 1000),
     payment: {
       id: "pay_1",
       orderId: "order_1",
@@ -177,6 +178,7 @@ describe("provisionStudentAccess", () => {
     const ev: RazorpayEvent = {
       kind: "ignored",
       eventId: "evt_ig",
+      createdAt: Math.floor(Date.now() / 1000),
       rawEvent: "payment.authorized",
     };
     const r = await provisionStudentAccess(ev, store);
