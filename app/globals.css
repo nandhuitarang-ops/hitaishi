@@ -3,23 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0a0a0a;
-  --ink-soft: #6b6b6b;
-  --ink-faint: #a3a3a3;
-  --paper: #ffffff;
-  --paper-soft: #fafafa;
-  --rule: #e5e5e5;
-  --rule-strong: #d4d4d4;
-  --signal: #d4a256;
-  --signal-soft: #f5e8d0;
+  --surface: #f7faf5;
+  --surface-card: #ffffff;
+  --surface-elevated: #f0f4f0;
+  --surface-dim: #ebefea;
 
-  --font-serif: "Bodoni Moda", Georgia, serif;
-  --font-sans: "DM Sans", system-ui, sans-serif;
+  --ink: #181d1a;
+  --ink-soft: #3f4943;
+  --ink-faint: #6f7a72;
+
+  --primary: #2f7d5c;
+  --primary-hover: #266649;
+  --primary-soft: #d9ebe2;
+  --primary-deep: #0b6445;
+  --on-primary: #ffffff;
+
+  --secondary: #e87b5a;
+  --secondary-soft: #ffdbd1;
+
+  --rule: #e3eae3;
+  --rule-strong: #c7d4c7;
+
+  --error: #ba1a1a;
+  --error-soft: #ffdad6;
+
+  --success: #0b6445;
+  --warning: #9d6b00;
+
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 html,
 body {
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -30,6 +48,7 @@ h2,
 h3,
 .serif {
   font-family: var(--font-serif);
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
@@ -38,14 +57,19 @@ h3,
   font-style: italic;
 }
 
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
 @layer components {
   .meta {
-    font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--ink-soft);
-    letter-spacing: 0.14em;
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     font-size: 0.7rem;
+    font-weight: 500;
   }
   .rule {
     height: 1px;
@@ -53,60 +77,90 @@ h3,
   }
   .rule-strong {
     height: 2px;
-    background: var(--ink);
+    background: var(--primary);
   }
   .chip-cta {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--primary);
+    color: var(--on-primary);
     padding: 0.65rem 1.1rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
+    border-radius: 6px;
     text-decoration: none;
+    transition: background 0.15s ease;
   }
   .chip-cta:hover {
-    background: var(--signal);
-    color: var(--ink);
+    background: var(--primary-hover);
   }
   .chip-ghost {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    border: 1px solid var(--ink);
-    color: var(--ink);
+    border: 1px solid var(--rule-strong);
+    color: var(--primary-deep);
     padding: 0.6rem 1.05rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    background: transparent;
     text-decoration: none;
+    transition: background 0.15s ease;
   }
-  .signal-dot {
+  .chip-ghost:hover {
+    background: var(--primary-soft);
+  }
+  .primary-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--signal);
+    background: var(--primary);
     display: inline-block;
   }
   .avatar {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--primary);
+    color: var(--on-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-serif);
-    font-weight: 700;
-    font-size: 1.4rem;
+    font-weight: 600;
+    font-size: 1rem;
     flex-shrink: 0;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* student portal stays light by design — phones at 11pm benefit from a calm
-       cream-on-ink contrast set in app/(student)/layout.tsx, not here. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+    background: var(--primary-soft);
+    color: var(--primary-deep);
+  }
+  .pill-coral {
+    background: var(--secondary-soft);
+    color: #74240a;
+  }
+  .pill-warn {
+    background: #fff2c5;
+    color: #6b4f00;
+  }
+  .pill-error {
+    background: var(--error-soft);
+    color: #93000a;
+  }
+  .card {
+    background: var(--surface-card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
   }
 }

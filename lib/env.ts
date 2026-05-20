@@ -1,9 +1,23 @@
 import { z } from "zod";
 
+const DEFAULT_PATTERNS = [
+  /^change-?me/i,
+  /^test-/i,
+  /^dev-/i,
+  /^secret-?/i,
+  /^placeholder/i,
+];
+
 const baseSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  DATABASE_URL: z.string().url().or(z.string().startsWith("postgres://")),
-  AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be >= 32 chars"),
+  DATABASE_URL: z.string().url(),
+  AUTH_SECRET: z
+    .string()
+    .min(32, "AUTH_SECRET must be >= 32 chars")
+    .refine(
+      (s) => !DEFAULT_PATTERNS.some((re) => re.test(s)),
+      "AUTH_SECRET looks like a default — generate with `openssl rand -hex 32`",
+    ),
 });
 
 const productionExtras = z.object({
@@ -17,6 +31,11 @@ const productionExtras = z.object({
   R2_SECRET_ACCESS_KEY: z.string().min(1),
   R2_BUCKET: z.string().min(1),
   REDIS_URL: z.string().min(1),
+  SOKETI_HOST: z.string().min(1),
+  SOKETI_KEY: z.string().min(1),
+  SOKETI_SECRET: z.string().min(1),
+  RESEND_API_KEY: z.string().min(1),
+  RESEND_FROM: z.string().email(),
 });
 
 export type ValidateResult =

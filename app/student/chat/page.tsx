@@ -1,92 +1,161 @@
 import { Shell } from "@/components/Shell";
-import { formatLastSeen, initials } from "@/lib/format";
+import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
+import { initials } from "@/lib/format";
 
+// TODO(phase-2f): replace with real conversation queries from db/schema/mentorship
 const mockMentor = {
-  fullName: "Rohan Kapoor",
-  institute: "IIT Bombay",
-  lastSeenAt: new Date(Date.now() - 4 * 60_000),
+  fullName: "Priya Sharma",
+  institute: "IIT Bombay '24",
+  activeAgo: "12m",
 };
-
-const mockMessages = [
+const conversations = [
+  {
+    id: "1",
+    name: "Priya Sharma",
+    institute: "IIT Bombay '24",
+    preview: "How is the thermodynamics prep going?",
+    unread: 2,
+    active: true,
+  },
+  {
+    id: "2",
+    name: "Rahul Verma",
+    institute: "IIT Delhi '23",
+    preview: "Physics doubt session scheduled for Saturday at 5pm.",
+    unread: 0,
+    active: false,
+  },
+];
+const messages = [
   {
     id: "m1",
-    fromMentor: true,
-    body: "Hey, did you try the rotational problem from yesterday?",
-    at: new Date(Date.now() - 60 * 60_000),
+    from: "mentor" as const,
+    body: "How did the rotational mechanics worksheet feel? Anything you got stuck on?",
+    at: "Yesterday · 4:12 PM",
   },
   {
     id: "m2",
-    fromMentor: false,
-    body: "Got stuck on the moment of inertia step. Can we go over it tonight?",
-    at: new Date(Date.now() - 50 * 60_000),
+    from: "student" as const,
+    body: "Q11 and Q14 broke me. I couldn't decouple the torque about the COM from the friction term.",
+    at: "Yesterday · 9:31 PM",
   },
   {
     id: "m3",
-    fromMentor: true,
-    body: "Yes — I'll explain it before the 12:05 session. Drop your working as an image so I can see where you got stuck.",
-    at: new Date(Date.now() - 6 * 60_000),
+    from: "mentor" as const,
+    body: "That's a really common stuck-point. Quick read this before our call.",
+    at: "Mon · 8:14 AM",
+    attachment: { name: "Mechanics_Notes.pdf", size: "12 MB" },
+  },
+  {
+    id: "m4",
+    from: "mentor" as const,
+    body: "Bring Q11 to our 5:30 PM call and we'll walk through it together.",
+    at: "Mon · 8:15 AM",
   },
 ];
 
-export default function StudentChat() {
-  const now = new Date();
+export default function StudentChatPage() {
   return (
-    <Shell role="student" active="chat" pageCode="S.03 — Mentor chat" pageTitle={mockMentor.fullName}>
-      <div className="flex items-center justify-between -mt-2">
-        <div className="text-sm text-[var(--ink-soft)]">
-          {mockMentor.institute} · {formatLastSeen(mockMentor.lastSeenAt, now)}
-        </div>
-        <button className="chip-ghost">Schedule call</button>
-      </div>
-
-      <div className="rule" aria-hidden />
-
-      <ol className="flex flex-col gap-4 flex-1 overflow-y-auto pr-1">
-        {mockMessages.map((m) => (
-          <li
-            key={m.id}
-            className={`flex gap-3 ${m.fromMentor ? "" : "flex-row-reverse"}`}
-          >
-            {m.fromMentor && (
-              <div className="avatar w-10 h-10 text-base">
-                {initials(mockMentor.fullName)}
-              </div>
-            )}
-            <div
-              className={`max-w-[70%] p-3 leading-relaxed text-[15px] ${
-                m.fromMentor
-                  ? "bg-[var(--paper-soft)] border border-[var(--rule)]"
-                  : "bg-[var(--ink)] text-[var(--paper)]"
-              }`}
-            >
-              {m.body}
-              <div
-                className={`mt-2 text-[11px] tracking-wider uppercase ${
-                  m.fromMentor ? "text-[var(--ink-faint)]" : "opacity-60"
-                }`}
+    <Shell
+      role="student"
+      active="chat"
+      pageCode="S.04 — MENTOR CHAT"
+      pageTitle={mockMentor.fullName}
+      pageSubtitle={`${mockMentor.institute} · Active ${mockMentor.activeAgo} ago`}
+      actions={<LinkButton href="/student/sessions" variant="ghost" size="sm">Schedule call</LinkButton>}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-5 h-[70vh]">
+        <Card className="overflow-y-auto">
+          <div className="px-4 py-3 border-b border-rule">
+            <div className="meta">ACTIVE CONVERSATIONS</div>
+          </div>
+          <ul>
+            {conversations.map((c) => (
+              <li
+                key={c.id}
+                className={`px-4 py-3 border-b border-rule cursor-pointer hover:bg-surface-elevated ${c.active ? "bg-primary-soft" : ""}`}
               >
-                {m.at.toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+                <div className="flex items-center gap-3">
+                  <div className="avatar !w-9 !h-9 !text-sm">
+                    {initials(c.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline gap-2">
+                      <span className="text-sm font-medium truncate">{c.name}</span>
+                      {c.unread > 0 && <Pill tone="coral">{c.unread}</Pill>}
+                    </div>
+                    <div className="text-xs text-ink-faint truncate">
+                      {c.preview}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
 
-      <form className="mt-auto pt-4 border-t border-[var(--rule)] flex gap-3">
-        <input
-          type="text"
-          placeholder="Write a message…"
-          className="flex-1 bg-transparent border-b border-[var(--ink)] py-3 outline-none
-                     placeholder:text-[var(--ink-faint)] text-[15px]"
-          aria-label="Message body"
-        />
-        <button type="submit" className="chip-cta">
-          Send →
-        </button>
-      </form>
+        <Card className="flex flex-col">
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+            <div className="meta text-center">MON 14 FEB</div>
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex gap-3 ${m.from === "student" ? "flex-row-reverse" : ""}`}
+              >
+                <div className="avatar !w-8 !h-8 !text-xs flex-shrink-0">
+                  {m.from === "mentor" ? "P" : "A"}
+                </div>
+                <div className={`max-w-[70%] ${m.from === "student" ? "items-end" : "items-start"} flex flex-col`}>
+                  <div
+                    className={`rounded-card px-4 py-3 text-sm ${m.from === "mentor" ? "bg-surface-elevated text-ink" : "bg-primary text-primary-on"}`}
+                  >
+                    {m.body}
+                    {m.attachment && (
+                      <div className="mt-3 flex items-center gap-2 text-xs font-mono px-3 py-2 bg-surface-card text-ink rounded-input border border-rule">
+                        📎 {m.attachment.name} · {m.attachment.size}
+                      </div>
+                    )}
+                  </div>
+                  <span className="meta mt-1">{m.at}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-rule p-4 flex items-center gap-3">
+            <button
+              aria-label="Attach file"
+              className="text-ink-soft hover:text-primary-deep text-xl"
+            >
+              📎
+            </button>
+            <input
+              placeholder="Type a message to your mentor…"
+              className="flex-1 rounded-input border border-rule-strong px-3 py-2 text-sm focus:outline-none focus:border-primary"
+            />
+            <button className="chip-cta">Send</button>
+          </div>
+          <div className="px-4 py-2 border-t border-rule meta text-center">
+            Messages are encrypted and private
+          </div>
+        </Card>
+
+        <div className="hidden lg:block">
+          <Card>
+            <div className="px-4 py-3 border-b border-rule">
+              <div className="meta">UPCOMING SESSION</div>
+            </div>
+            <CardBody>
+              <div className="font-serif text-lg">Thermodynamics</div>
+              <div className="text-sm text-ink-soft mt-1">
+                Oct 14 · 5:30 PM (45 min)
+              </div>
+              <LinkButton href="/student/sessions" size="md" className="mt-4 w-full">
+                Join session
+              </LinkButton>
+            </CardBody>
+          </Card>
+        </div>
+      </div>
     </Shell>
   );
 }

@@ -1,127 +1,156 @@
-import Link from "next/link";
 import { Shell } from "@/components/Shell";
-import {
-  formatDayCounter,
-  formatTimeUntil,
-  formatLastSeen,
-  initials,
-} from "@/lib/format";
+import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
+import { initials } from "@/lib/format";
 
-// TODO(phase-2f): replace with real queries against the user's session
+// TODO(phase-2f): replace mocks with real Drizzle queries against the user's session
+const mockStudent = { firstName: "Aarav" };
 const mockMentor = {
-  fullName: "Rohan Kapoor",
-  institute: "IIT Bombay",
-  branch: "Mech",
-  year: "'27",
-  unreadCount: 2,
-  lastSeenAt: new Date(Date.now() - 4 * 60_000),
+  fullName: "Priya Sharma",
+  institute: "IIT Bombay '24",
+  subjects: ["Physics", "Chemistry"],
+  status: "Online",
+  lastMessage:
+    "Let's review the mock test results from yesterday. Your progress on rotational mechanics looks strong.",
+  activeAgo: "12m",
 };
 const mockUpcomingSession = {
-  scheduledAt: new Date(Date.now() + 18 * 60_000),
-  title: "Rotational mechanics — pre-class doubt clearing",
+  dateLabel: "OCT 14",
+  timeLabel: "Today · 5:30 PM",
+  title: "Thermodynamics — Advanced Practice",
 };
 const mockResources = [
-  { id: "1", title: "Newton's laws cheat sheet", kind: "PDF" },
-  { id: "2", title: "Mole concept playlist", kind: "Link" },
-  { id: "3", title: "Integration tricks", kind: "PDF" },
+  { id: "1", title: "Mechanics Notes", kind: "PDF", size: "12 MB" },
+  { id: "2", title: "Inorganic Shortcuts", kind: "DOCX", size: "2 MB" },
+  { id: "3", title: "Wave Optics Rev.", kind: "MP4", size: "45 MB" },
+];
+const mockStats = [
+  { label: "Doubts resolved", value: "12" },
+  { label: "Sessions attended", value: "04" },
+  { label: "Resources saved", value: "08" },
+  { label: "Active streak", value: "9 days" },
 ];
 const mockProgress = { day: 47, total: 180, examTarget: "JEE Adv 2027" };
-const mockStudentName = "Aarav";
+const mockInsight =
+  "Focus on understanding the 'why' behind every chemical reaction — patterns repeat across the syllabus.";
 
 export default function StudentDashboard() {
-  const now = new Date();
-  const greeting = greetingFor(now);
+  const greeting = greetingFor(new Date());
+  const pct = Math.round((mockProgress.day / mockProgress.total) * 100);
 
   return (
-    <Shell role="student" active="dashboard" pageCode="S.02 — Dashboard" pageTitle={`${greeting}, ${mockStudentName}.`}>
-      <p className="text-[var(--ink-soft)] max-w-[60ch] -mt-2">
-        Three things tonight. Your mentor. Your next session. What landed today.
-      </p>
+    <Shell
+      role="student"
+      active="dashboard"
+      pageCode="S.03 — DASHBOARD"
+      pageTitle={`${greeting}, ${mockStudent.firstName}.`}
+      pageSubtitle={`Day ${mockProgress.day} of ${mockProgress.total} · ${mockProgress.examTarget}`}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
+          <CardHeader meta="YOUR MENTOR" title={mockMentor.fullName} action={<Pill tone="primary">{mockMentor.status}</Pill>} />
+          <CardBody className="flex gap-5">
+            <div className="avatar !w-14 !h-14 !text-xl">
+              {initials(mockMentor.fullName)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-ink-soft">{mockMentor.institute}</div>
+              <div className="flex gap-2 mt-2">
+                {mockMentor.subjects.map((s) => (
+                  <Pill key={s} tone="primary">{s}</Pill>
+                ))}
+              </div>
+              <p className="text-sm text-ink mt-4 italic">
+                "{mockMentor.lastMessage}"
+              </p>
+              <div className="flex items-center gap-4 mt-4">
+                <LinkButton href="/student/chat" size="md">
+                  Open chat →
+                </LinkButton>
+                <span className="meta">Active {mockMentor.activeAgo} ago</span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
 
-      <article className="border border-[var(--rule)] p-5 flex items-center gap-4">
-        <div className="avatar">{initials(mockMentor.fullName)}</div>
-        <div className="flex-1 min-w-0">
-          <div className="serif text-xl font-bold leading-tight">
-            {mockMentor.fullName}
-          </div>
-          <div className="text-sm text-[var(--ink-soft)] mt-1">
-            {mockMentor.institute} · {mockMentor.branch} {mockMentor.year} ·{" "}
-            {formatLastSeen(mockMentor.lastSeenAt, now)}
-          </div>
-        </div>
-        <Link href="/student/chat" className="chip-cta whitespace-nowrap">
-          {mockMentor.unreadCount > 0 && <span className="signal-dot" aria-hidden />}
-          Open chat
-          {mockMentor.unreadCount > 0 && (
-            <span className="ml-1 opacity-80">· {mockMentor.unreadCount} unread</span>
-          )}
-        </Link>
-      </article>
+        <Card>
+          <CardHeader meta={mockUpcomingSession.dateLabel} title="Next Session" />
+          <CardBody>
+            <div className="font-serif text-2xl">{mockUpcomingSession.timeLabel}</div>
+            <div className="text-sm text-ink-soft mt-2">
+              {mockUpcomingSession.title}
+            </div>
+            <LinkButton href="/student/sessions" size="md" className="mt-5 w-full">
+              Join session →
+            </LinkButton>
+          </CardBody>
+        </Card>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <section className="border-t-2 border-[var(--ink)] pt-3">
-          <div className="flex justify-between meta">
-            <span>Next session</span>
-            <span>{formatTimeUntil(mockUpcomingSession.scheduledAt, now)}</span>
-          </div>
-          <div className="serif text-3xl font-bold mt-2 leading-none">
-            {mockUpcomingSession.scheduledAt.toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </div>
-          <div className="text-sm text-[var(--ink-soft)] mt-1">
-            {mockUpcomingSession.title}
-          </div>
-          <Link href="/student/sessions" className="chip-ghost mt-4 inline-flex">
-            See all sessions →
-          </Link>
-        </section>
-
-        <section className="border-t-2 border-[var(--ink)] pt-3">
-          <div className="flex justify-between meta">
-            <span>Resources today</span>
-            <span>{mockResources.length} new</span>
-          </div>
-          <ul className="mt-3 flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
+        <Card className="lg:col-span-2">
+          <CardHeader
+            meta="RECENT RESOURCES"
+            title="Shared in the last 7 days"
+            action={
+              <LinkButton href="/student/resources" variant="ghost" size="sm">
+                View all
+              </LinkButton>
+            }
+          />
+          <ul>
             {mockResources.map((r) => (
               <li
                 key={r.id}
-                className="flex justify-between py-2 border-b border-dotted border-[var(--rule)] text-sm"
+                className="flex items-center justify-between px-5 py-3 border-t border-rule first:border-t-0"
               >
-                <span>{r.title}</span>
-                <span className="italic-serif text-[var(--ink-soft)]">
-                  {r.kind}
-                </span>
+                <div>
+                  <div className="font-medium text-sm">{r.title}</div>
+                  <div className="meta mt-1">{r.kind} · {r.size}</div>
+                </div>
+                <LinkButton href="/student/resources" variant="ghost" size="sm">
+                  Open
+                </LinkButton>
               </li>
             ))}
           </ul>
-          <Link href="/student/resources" className="chip-ghost mt-4 inline-flex">
-            Open library →
-          </Link>
-        </section>
+        </Card>
+
+        <Card>
+          <CardHeader meta="DAILY INSIGHT" title="From your mentor" />
+          <CardBody>
+            <p className="text-sm text-ink-soft italic">"{mockInsight}"</p>
+          </CardBody>
+        </Card>
       </div>
 
-      <footer className="mt-auto pt-4 border-t-2 border-[var(--ink)] flex items-center justify-between gap-4">
-        <div className="flex items-baseline gap-2">
-          <span className="serif text-2xl font-bold">
-            {formatDayCounter(mockProgress.day, mockProgress.total).split(" of ")[0]}
-          </span>
-          <span className="meta">
-            of {mockProgress.total} · {mockProgress.examTarget}
-          </span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+        {mockStats.map((s) => (
+          <Card key={s.label} className="p-5">
+            <div className="meta">{s.label}</div>
+            <div className="font-serif text-3xl text-primary-deep mt-2">
+              {s.value}
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="mt-5 p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <div className="meta">PROGRESS</div>
+            <div className="font-serif text-xl mt-1">
+              {mockProgress.day} of {mockProgress.total} days · {mockProgress.examTarget}
+            </div>
+          </div>
+          <div className="font-mono text-sm text-primary-deep">{pct}%</div>
         </div>
-        <div
-          className="flex-1 h-[3px] bg-[var(--rule)] relative max-w-[300px]"
-          aria-hidden
-        >
+        <div className="h-2 bg-surface-elevated rounded-pill mt-4 relative overflow-hidden">
           <div
-            className="absolute inset-y-0 left-0 bg-[var(--ink)]"
-            style={{ width: `${(mockProgress.day / mockProgress.total) * 100}%` }}
+            className="absolute inset-y-0 left-0 bg-primary rounded-pill"
+            style={{ width: `${pct}%` }}
           />
         </div>
-      </footer>
+      </Card>
     </Shell>
   );
 }

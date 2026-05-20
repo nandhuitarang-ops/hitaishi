@@ -1,120 +1,165 @@
-import Link from "next/link";
 import { Shell } from "@/components/Shell";
-import { rankStudents, type StudentSignal } from "@/lib/triage";
-import { formatLastSeen, initials } from "@/lib/format";
+import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
+import { initials } from "@/lib/format";
 
-const mockSignals: StudentSignal[] = [
+// TODO(phase-2f): replace with Drizzle queries (assignments + conversations + sessions + doubts)
+const summary = {
+  students: 10,
+  sessionsToday: 3,
+  doubtsPending: 4,
+  earningsThisMonth: 4200,
+  status: "Available",
+};
+
+const needsAttention = [
   {
-    studentId: "s1",
-    fullName: "Aarav Sharma",
-    unreadCount: 3,
-    lastReplyAt: new Date(Date.now() - 26 * 3600_000),
-    recentScoreDelta: -12,
-    sessionsAttendedLast7d: 1,
+    id: "a1",
+    name: "Arjun Srinivasan",
+    reason: "4 unread messages · 18h",
+    tone: "warn" as const,
   },
   {
-    studentId: "s2",
-    fullName: "Diya Patel",
-    unreadCount: 1,
-    lastReplyAt: new Date(Date.now() - 4 * 3600_000),
-    recentScoreDelta: +5,
-    sessionsAttendedLast7d: 3,
+    id: "a2",
+    name: "Meera Krishnan",
+    reason: "Missed last 1:1 session",
+    tone: "error" as const,
   },
   {
-    studentId: "s3",
-    fullName: "Kabir Singh",
-    unreadCount: 0,
-    lastReplyAt: new Date(Date.now() - 60 * 60_000),
-    recentScoreDelta: +18,
-    sessionsAttendedLast7d: 2,
+    id: "a3",
+    name: "Rohan Sethi",
+    reason: "Mock score declined 12%",
+    tone: "warn" as const,
   },
+];
+
+const pendingDoubts = [
+  { id: "d1", student: "Aarav", subject: "Math", title: "Integration by parts — Q14" },
+  { id: "d2", student: "Diya", subject: "Chemistry", title: "Aldol vs Cannizzaro" },
+  { id: "d3", student: "Kabir", subject: "Physics", title: "Rotational vs translational KE" },
+  { id: "d4", student: "Saanvi", subject: "Physics", title: "Wave optics geometry" },
 ];
 
 const todayCalendar = [
-  { time: "12:05 AM", who: "Aarav · Rotational mechanics" },
-  { time: "07:30 PM", who: "Group · Mole concept marathon" },
-  { time: "09:00 PM", who: "Diya · Vector calculus" },
+  { time: "04:00 PM", who: "Arjun · Physics", subject: "Physics" },
+  { time: "06:30 PM", who: "Meera · Chemistry", subject: "Chemistry" },
+  { time: "08:00 PM", who: "Group doubt session", subject: "Group" },
 ];
 
 export default function MentorDashboard() {
-  const now = new Date();
-  const ranked = rankStudents(mockSignals, now);
-  const needsAttention = ranked.filter((r) => r.urgency > 5);
-
   return (
-    <Shell role="mentor" active="dashboard" pageCode="M.01 — Triage" pageTitle="Who needs you tonight.">
-      <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-6">
-        <section>
-          <div className="meta mb-3">Needs your attention · {needsAttention.length}</div>
-          <ul className="flex flex-col">
-            {ranked.map((r) => {
-              const urgent = r.urgency > 5;
-              return (
+    <Shell
+      role="mentor"
+      active="dashboard"
+      pageCode="M.03 — DASHBOARD"
+      pageTitle="Who needs you tonight."
+      pageSubtitle="Triage queue, today's calendar, and your monthly earnings at a glance."
+      actions={
+        <div className="flex items-center gap-2">
+          <Pill tone="primary">● {summary.status}</Pill>
+          <button className="chip-ghost text-xs">Switch to Away</button>
+        </div>
+      }
+    >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card className="p-5">
+          <div className="meta">STUDENTS</div>
+          <div className="font-serif text-3xl mt-2 text-primary-deep">{summary.students}</div>
+        </Card>
+        <Card className="p-5">
+          <div className="meta">SESSIONS TODAY</div>
+          <div className="font-serif text-3xl mt-2 text-primary-deep">{summary.sessionsToday}</div>
+        </Card>
+        <Card className="p-5">
+          <div className="meta">DOUBTS PENDING</div>
+          <div className="font-serif text-3xl mt-2 text-secondary">{summary.doubtsPending}</div>
+        </Card>
+        <Card className="p-5">
+          <div className="meta">THIS MONTH</div>
+          <div className="font-serif text-3xl mt-2 text-primary-deep">
+            ₹{summary.earningsThisMonth.toLocaleString("en-IN")}
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5">
+        <div className="flex flex-col gap-5">
+          <Card>
+            <CardHeader meta="NEEDS YOUR ATTENTION" title="Students to message tonight" />
+            <ul>
+              {needsAttention.map((a) => (
                 <li
-                  key={r.studentId}
-                  className="grid grid-cols-[40px_1fr_auto_auto] gap-3 items-center
-                             py-3 border-b border-[var(--rule)]"
+                  key={a.id}
+                  className="flex items-center gap-4 px-5 py-4 border-t border-rule first:border-t-0"
                 >
-                  <div className="avatar w-10 h-10 text-base">{initials(r.fullName)}</div>
-                  <div className="min-w-0">
-                    <div className="text-[15px] font-medium truncate">{r.fullName}</div>
-                    <div className="text-xs text-[var(--ink-soft)] mt-0.5">
-                      {r.unreadCount > 0 && <>{r.unreadCount} unread · </>}
-                      last reply {formatLastSeen(r.lastReplyAt, now)}
-                      {r.recentScoreDelta < 0 && (
-                        <>
-                          {" "}
-                          · <span className="text-[var(--ink)]">score {r.recentScoreDelta}</span>
-                        </>
-                      )}
+                  <div className="avatar !w-10 !h-10 !text-sm">{initials(a.name)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm">{a.name}</div>
+                    <div className="text-xs text-ink-soft mt-1">{a.reason}</div>
+                  </div>
+                  <Pill tone={a.tone}>flag</Pill>
+                  <LinkButton href={`/mentor/students/${a.id}`} size="sm">
+                    Open chat
+                  </LinkButton>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card>
+            <CardHeader
+              meta="PENDING DOUBTS"
+              title={`${pendingDoubts.length} in your inbox`}
+              action={
+                <LinkButton href="/mentor/doubts" variant="ghost" size="sm">
+                  View all
+                </LinkButton>
+              }
+            />
+            <ul>
+              {pendingDoubts.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between gap-4 px-5 py-3 border-t border-rule first:border-t-0"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Pill tone="primary">{d.subject}</Pill>
+                    <div className="min-w-0">
+                      <div className="text-sm truncate">{d.title}</div>
+                      <div className="meta mt-0.5">from {d.student}</div>
                     </div>
                   </div>
-                  <div className="meta">{Math.round(r.urgency)}</div>
-                  <Link
-                    href={`/mentor/students/${r.studentId}`}
-                    className={urgent ? "chip-cta" : "chip-ghost"}
-                  >
-                    Open →
-                  </Link>
+                  <LinkButton href={`/mentor/doubts/${d.id}`} variant="ghost" size="sm">
+                    Answer →
+                  </LinkButton>
                 </li>
-              );
-            })}
-          </ul>
-        </section>
+              ))}
+            </ul>
+          </Card>
+        </div>
 
-        <aside>
-          <div className="meta mb-3">Today · {todayCalendar.length} sessions</div>
-          <ul className="flex flex-col gap-3">
+        <Card>
+          <CardHeader meta="TODAY'S CALENDAR" title="3 sessions" />
+          <ul>
             {todayCalendar.map((c, i) => (
               <li
                 key={i}
-                className="border-l-2 border-[var(--ink)] pl-3 py-1"
+                className="px-5 py-4 border-t border-rule first:border-t-0"
               >
-                <div className="serif font-bold text-base">{c.time}</div>
-                <div className="text-sm text-[var(--ink-soft)] mt-0.5">{c.who}</div>
+                <div className="flex items-center justify-between">
+                  <div className="font-serif text-lg">{c.time}</div>
+                  <Pill tone="primary">{c.subject}</Pill>
+                </div>
+                <div className="text-sm text-ink-soft mt-1">{c.who}</div>
               </li>
             ))}
           </ul>
-          <Link href="/mentor/calendar" className="chip-ghost mt-4 inline-flex">
-            Full calendar →
-          </Link>
-        </aside>
+          <CardBody>
+            <LinkButton href="/mentor/calendar" variant="ghost" size="md" className="w-full">
+              Full calendar →
+            </LinkButton>
+          </CardBody>
+        </Card>
       </div>
-
-      <footer className="mt-auto pt-4 border-t-2 border-[var(--ink)] grid grid-cols-3 gap-4 text-center">
-        <div>
-          <div className="serif text-2xl font-bold">{mockSignals.length}</div>
-          <div className="meta mt-1">Active students</div>
-        </div>
-        <div>
-          <div className="serif text-2xl font-bold">12</div>
-          <div className="meta mt-1">Sessions this week</div>
-        </div>
-        <div>
-          <div className="serif text-2xl font-bold">94%</div>
-          <div className="meta mt-1">Reply rate</div>
-        </div>
-      </footer>
     </Shell>
   );
 }

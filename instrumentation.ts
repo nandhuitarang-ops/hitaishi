@@ -1,5 +1,8 @@
 import { validateEnv } from "./lib/env";
 
+// Pin to the Node.js runtime — `process.exit` is not available on the edge.
+export const runtime = "nodejs";
+
 export function register() {
   // Runs once per server process. Fail fast in production if env is wrong.
   const result = validateEnv(process.env);

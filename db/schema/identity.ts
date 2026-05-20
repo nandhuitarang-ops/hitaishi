@@ -65,6 +65,9 @@ export const profiles = pgTable("profiles", {
   subjectsFocus: jsonb("subjects_focus"),
   institute: varchar("institute", { length: 120 }),
   graduationYear: integer("graduation_year"),
+  onboardingStep: integer("onboarding_step").notNull().default(0),
+  onboardingCompletedAt: timestamp("onboarding_completed_at", { withTimezone: true }),
+  payoutDetails: jsonb("payout_details"),
   ...ts(),
 });
 

@@ -1,55 +1,184 @@
 import { Shell } from "@/components/Shell";
-import { formatInr } from "@/lib/format";
+import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 
-const mockNextPayout = {
-  amountPaise: 4_499_700,
-  date: "30 May 2026",
-  sessions: 18,
+// TODO(phase-2f): hydrate from payouts + payments + assignments
+const summary = {
+  thisMonth: 12500,
+  monthDelta: 12,
+  lifetime: 142000,
+  sessionsThisMonth: 24,
+  sessionsDelta: 2,
 };
 
-const mockHistory = [
-  { id: "p1", period: "Apr 2026", gross: 5_200_000, fee: 1_040_000, tds: 0, net: 4_160_000 },
-  { id: "p2", period: "Mar 2026", gross: 4_800_000, fee: 960_000, tds: 0, net: 3_840_000 },
+const nextPayout = {
+  amount: 8400,
+  date: "01 Mar 2026",
+};
+
+const breakdown = [
+  { label: "Live sessions", count: 12, unit: 500, total: 6000 },
+  { label: "Doubts resolved", count: 50, unit: 40, total: 2000 },
+  { label: "Resource approvals", count: 4, unit: 100, total: 400 },
 ];
 
-export default function MentorEarnings() {
-  return (
-    <Shell role="mentor" active="earnings" pageCode="M.06 — Earnings" pageTitle="Your payouts.">
-      <article className="border-l-4 border-[var(--signal)] pl-5 py-3">
-        <div className="meta">Next payout · {mockNextPayout.date}</div>
-        <div className="serif text-5xl font-bold mt-2">{formatInr(mockNextPayout.amountPaise)}</div>
-        <div className="text-sm text-[var(--ink-soft)] mt-2">
-          For {mockNextPayout.sessions} sessions this month. Razorpay Routes transfers to your verified bank account.
-        </div>
-      </article>
+const history = [
+  {
+    id: "h1",
+    date: "01 Feb 2026",
+    amount: 12400,
+    status: "Paid" as const,
+    utr: "HDFC0001239921",
+  },
+  {
+    id: "h2",
+    date: "01 Jan 2026",
+    amount: 11800,
+    status: "Paid" as const,
+    utr: "HDFC0001182205",
+  },
+  {
+    id: "h3",
+    date: "01 Dec 2025",
+    amount: 9200,
+    status: "Paid" as const,
+    utr: "HDFC0001120004",
+  },
+];
 
-      <section>
-        <div className="meta mb-3">Statement history</div>
-        <table className="w-full text-sm border-collapse">
+export default function MentorEarningsPage() {
+  return (
+    <Shell
+      role="mentor"
+      active="earnings"
+      pageCode="M.09 — EARNINGS & PAYOUTS"
+      pageTitle="Earnings"
+      pageSubtitle="Payouts are processed via Razorpay Routes to your verified bank account."
+      actions={<LinkButton href="/mentor/earnings/export" variant="ghost" size="sm">Export CSV</LinkButton>}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        <Card>
+          <CardHeader meta="NEXT PAYOUT" title={`Scheduled ${nextPayout.date}`} />
+          <CardBody>
+            <div className="font-serif text-5xl text-primary-deep">
+              ₹{nextPayout.amount.toLocaleString("en-IN")}
+            </div>
+            <Pill tone="primary" className="mt-3">
+              Pending bank transfer
+            </Pill>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader meta="THIS MONTH" title="February" />
+          <CardBody>
+            <div className="font-serif text-4xl text-primary-deep">
+              ₹{summary.thisMonth.toLocaleString("en-IN")}
+            </div>
+            <div className="text-sm text-primary-deep mt-2">
+              +{summary.monthDelta}% vs last month
+            </div>
+            <div className="meta mt-3">
+              {summary.sessionsThisMonth} sessions · +{summary.sessionsDelta} vs prev
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader meta="LIFETIME EARNINGS" title="All time" />
+          <CardBody>
+            <div className="font-serif text-4xl text-ink">
+              ₹{summary.lifetime.toLocaleString("en-IN")}
+            </div>
+            <div className="meta mt-3">Across 124 paid sessions</div>
+          </CardBody>
+        </Card>
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader meta="THIS MONTH'S BREAKDOWN" title="Where your earnings come from" />
+        <ul>
+          {breakdown.map((b) => (
+            <li
+              key={b.label}
+              className="flex items-center justify-between gap-4 px-5 py-4 border-t border-rule first:border-t-0"
+            >
+              <div>
+                <div className="font-medium text-sm">{b.label}</div>
+                <div className="meta mt-1">
+                  {b.count} × ₹{b.unit}
+                </div>
+              </div>
+              <div className="font-mono text-lg">
+                ₹{b.total.toLocaleString("en-IN")}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card className="mb-6 overflow-x-auto">
+        <CardHeader meta="PAYOUT HISTORY" title="Past transfers" />
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b-2 border-[var(--ink)]">
-              <th className="text-left py-3 meta">Period</th>
-              <th className="text-right py-3 meta">Gross</th>
-              <th className="text-right py-3 meta hidden md:table-cell">Platform fee</th>
-              <th className="text-right py-3 meta hidden md:table-cell">TDS</th>
-              <th className="text-right py-3 meta">Net</th>
+            <tr className="bg-surface-elevated border-b border-rule">
+              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                Date
+              </th>
+              <th className="px-4 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                Amount
+              </th>
+              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-soft hidden md:table-cell">
+                UTR
+              </th>
+              <th className="px-4 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-soft">
+                Receipt
+              </th>
             </tr>
           </thead>
           <tbody>
-            {mockHistory.map((p) => (
-              <tr key={p.id} className="border-b border-[var(--rule)]">
-                <td className="py-3">{p.period}</td>
-                <td className="py-3 text-right">{formatInr(p.gross)}</td>
-                <td className="py-3 text-right hidden md:table-cell text-[var(--ink-soft)]">− {formatInr(p.fee)}</td>
-                <td className="py-3 text-right hidden md:table-cell text-[var(--ink-soft)]">− {formatInr(p.tds)}</td>
-                <td className="py-3 text-right serif font-bold">{formatInr(p.net)}</td>
+            {history.map((h) => (
+              <tr key={h.id} className="border-b border-rule last:border-0">
+                <td className="px-4 py-3">{h.date}</td>
+                <td className="px-4 py-3 text-right font-mono">
+                  ₹{h.amount.toLocaleString("en-IN")}
+                </td>
+                <td className="px-4 py-3">
+                  <Pill tone="primary">{h.status}</Pill>
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell font-mono text-xs text-ink-faint">
+                  {h.utr}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <LinkButton href={`/mentor/earnings/receipt/${h.id}`} variant="ghost" size="sm">
+                    PDF
+                  </LinkButton>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </section>
+      </Card>
 
-      <p className="meta">Tax docs ship with v2 · full TDS workflow under design</p>
+      <div className="grid md:grid-cols-2 gap-5">
+        <Card>
+          <CardHeader meta="PAYOUT METHOD" title="HDFC Bank ····4920" />
+          <CardBody>
+            <button className="chip-ghost">Change account</button>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader meta="TAX & COMPLIANCE" title="Form 16 / TDS" />
+          <CardBody>
+            <p className="text-sm text-ink-soft">
+              Certificates for FY 2025-26 will be available after April 2026.
+            </p>
+            <button className="chip-ghost mt-3">Request prior-year docs</button>
+          </CardBody>
+        </Card>
+      </div>
     </Shell>
   );
 }
