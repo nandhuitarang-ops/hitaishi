@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui";
 
 export default function Loading() {
   return (
-    <Shell role="admin" active="leads" pageCode="A.09" pageTitle="Loading...">
+    <Shell role="admin" active="dashboard" pageCode="A.09" pageTitle="Loading...">
       <div className="bg-surface-card border border-rule rounded-card p-6">
         <Skeleton className="h-4 w-48 mb-4" />
         <div className="grid grid-cols-3 gap-4 mb-4">
