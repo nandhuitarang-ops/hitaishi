@@ -9,6 +9,8 @@ import { MentorWelcomeEmail } from "@/components/emails/MentorWelcomeEmail";
 import { AdminNotificationEmail } from "@/components/emails/AdminNotificationEmail";
 import { MentorAssignedEmail } from "@/components/emails/MentorAssignedEmail";
 import { StudentAssignedEmail } from "@/components/emails/StudentAssignedEmail";
+import { MentorApprovedEmail } from "@/components/emails/MentorApprovedEmail";
+import { MentorRejectedEmail } from "@/components/emails/MentorRejectedEmail";
 import React from "react";
 
 // Log a mock email to node console for development review
@@ -297,6 +299,58 @@ export async function sendStudentAssignedEmail(
     return { ok: true, data };
   } catch (err: any) {
     console.error("sendStudentAssignedEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendMentorApprovedEmail(
+  toEmail: string,
+  fullName: string,
+  dashboardLink: string,
+) {
+  const subject = "Your Hitaishi mentor application has been approved! 🎉";
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { fullName, dashboardLink });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_MENTOR,
+      to: toEmail,
+      subject,
+      react: React.createElement(MentorApprovedEmail, { fullName, dashboardLink }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendMentorApprovedEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendMentorRejectedEmail(
+  toEmail: string,
+  fullName: string,
+  reason: string,
+) {
+  const subject = "Update on your Hitaishi mentor application";
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { fullName, reason });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_MENTOR,
+      to: toEmail,
+      subject,
+      react: React.createElement(MentorRejectedEmail, { fullName, reason }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendMentorRejectedEmail failed:", err);
     return { ok: false, error: err.message };
   }
 }

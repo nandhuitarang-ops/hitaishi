@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/session";
 import { users, profiles, mentorVerifications, assignments, doubtAnswers } from "@/db/schema";
 import { leads } from "@/db/schema/leads";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
+import { MentorReviewActions } from "@/components/admin/MentorReviewActions";
 
 export const dynamic = "force-dynamic";
 
@@ -268,8 +269,7 @@ export default async function AdminMentorsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="chip-ghost">Reject</button>
-                      <button className="chip-cta">Approve →</button>
+                      <MentorReviewActions id={p.id} source={p.source} />
                     </div>
                   </div>
                 </li>
