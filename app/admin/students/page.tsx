@@ -19,36 +19,37 @@ export default async function AdminStudentsPage() {
 
   const studentBase = and(eq(users.role, "student"), isNull(users.deletedAt));
 
-  const [allRow] = await db
-    .select({ c: count() })
-    .from(users)
-    .where(studentBase);
+  const [[allRow], rows] = await Promise.all([
+    db
+      .select({ c: count() })
+      .from(users)
+      .where(studentBase),
+    db
+      .select({
+        id: users.id,
+        email: users.email,
+        phone: users.phone,
+        fullName: profiles.fullName,
+        lastLoginAt: users.lastLoginAt,
+        mentorName: sql<string | null>`(
+          SELECT pf.full_name FROM profiles pf
+           INNER JOIN assignments ON assignments.mentor_id = pf.user_id
+           WHERE assignments.student_id = ${users.id}
+             AND assignments.status = 'active'
+           ORDER BY assignments.started_at DESC
+           LIMIT 1
+        )`,
+      })
+      .from(users)
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(studentBase)
+      .orderBy(desc(users.createdAt))
+      .limit(STUDENT_LIMIT),
+  ]);
 
   const filters = [
     { key: "all", label: "All", count: Number(allRow?.c ?? 0) },
   ];
-
-  const rows = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      phone: users.phone,
-      fullName: profiles.fullName,
-      lastLoginAt: users.lastLoginAt,
-      mentorName: sql<string | null>`(
-        SELECT pf.full_name FROM profiles pf
-         INNER JOIN assignments ON assignments.mentor_id = pf.user_id
-         WHERE assignments.student_id = ${users.id}
-           AND assignments.status = 'active'
-         ORDER BY assignments.started_at DESC
-         LIMIT 1
-      )`,
-    })
-    .from(users)
-    .leftJoin(profiles, eq(profiles.userId, users.id))
-    .where(studentBase)
-    .orderBy(desc(users.createdAt))
-    .limit(STUDENT_LIMIT);
 
   return (
     <Shell

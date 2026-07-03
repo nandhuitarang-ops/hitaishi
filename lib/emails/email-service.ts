@@ -7,6 +7,8 @@ import { WeeklyDigestEmail } from "@/components/emails/WeeklyDigestEmail";
 import { InstitutionPartnerEmail } from "@/components/emails/InstitutionPartnerEmail";
 import { MentorWelcomeEmail } from "@/components/emails/MentorWelcomeEmail";
 import { AdminNotificationEmail } from "@/components/emails/AdminNotificationEmail";
+import { MentorAssignedEmail } from "@/components/emails/MentorAssignedEmail";
+import { StudentAssignedEmail } from "@/components/emails/StudentAssignedEmail";
 import React from "react";
 
 // Log a mock email to node console for development review
@@ -240,6 +242,61 @@ export async function sendAdminNotificationEmail(
     return { ok: true, data };
   } catch (err: any) {
     console.error("sendAdminNotificationEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendMentorAssignedEmail(
+  toEmail: string,
+  studentName: string,
+  mentorName: string,
+  dashboardLink: string
+) {
+  const subject = "You've been matched with an IITian mentor! 🎯";
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { studentName, mentorName, dashboardLink });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM,
+      to: toEmail,
+      subject,
+      react: React.createElement(MentorAssignedEmail, { studentName, mentorName, dashboardLink }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendMentorAssignedEmail failed:", err);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function sendStudentAssignedEmail(
+  toEmail: string,
+  mentorName: string,
+  studentName: string,
+  studentClass: string,
+  dashboardLink: string
+) {
+  const subject = `New student assigned: ${studentName} 📚`;
+  if (!isRealEmailConfigured || !resend) {
+    logMockEmail(toEmail, subject, { mentorName, studentName, studentClass, dashboardLink });
+    return { ok: true, mock: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_MENTOR,
+      to: toEmail,
+      subject,
+      react: React.createElement(StudentAssignedEmail, { mentorName, studentName, studentClass, dashboardLink }),
+    });
+    if (error) throw error;
+    return { ok: true, data };
+  } catch (err: any) {
+    console.error("sendStudentAssignedEmail failed:", err);
     return { ok: false, error: err.message };
   }
 }
