@@ -109,49 +109,69 @@ async function handleLeadReview(
     }
 
     // Upsert profile with form data
-    await db
-      .insert(profiles)
-      .values({
-        userId,
-        fullName,
-        institute: (formData.institute as string) ?? null,
-        city: (formData.city as string) ?? null,
-        gender: (formData.gender as string) ?? null,
-        graduationYear: formData.jeeYear ? Number(formData.jeeYear) : null,
-        onboardingStep: 0,
-      })
-      .onConflictDoUpdate({
-        target: profiles.userId,
-        set: {
+    const [existingProfile] = await db
+      .select({ userId: profiles.userId })
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+
+    if (existingProfile) {
+      await db
+        .update(profiles)
+        .set({
           fullName,
           institute: (formData.institute as string) ?? null,
           city: (formData.city as string) ?? null,
           gender: (formData.gender as string) ?? null,
           graduationYear: formData.jeeYear ? Number(formData.jeeYear) : null,
           updatedAt: new Date(),
-        },
-      });
+        })
+        .where(eq(profiles.userId, userId));
+    } else {
+      await db
+        .insert(profiles)
+        .values({
+          userId,
+          fullName,
+          institute: (formData.institute as string) ?? null,
+          city: (formData.city as string) ?? null,
+          gender: (formData.gender as string) ?? null,
+          graduationYear: formData.jeeYear ? Number(formData.jeeYear) : null,
+          onboardingStep: 0,
+        });
+    }
 
     // Upsert mentor verification record
-    await db
-      .insert(mentorVerifications)
-      .values({
-        userId,
-        status: "approved",
-        reviewedBy: admin.id,
-        reviewNotes: null,
-        jeeRank: formData.jeeRank ? Number(formData.jeeRank) : null,
-      })
-      .onConflictDoUpdate({
-        target: mentorVerifications.userId,
-        set: {
+    // Note: mentorVerifications.userId has an index but NOT a unique constraint,
+    // so we cannot use ON CONFLICT. Check-then-upsert manually.
+    const [existingVerification] = await db
+      .select({ id: mentorVerifications.id })
+      .from(mentorVerifications)
+      .where(eq(mentorVerifications.userId, userId))
+      .limit(1);
+
+    if (existingVerification) {
+      await db
+        .update(mentorVerifications)
+        .set({
           status: "approved",
           reviewedBy: admin.id,
           reviewNotes: null,
           jeeRank: formData.jeeRank ? Number(formData.jeeRank) : null,
           updatedAt: new Date(),
-        },
-      });
+        })
+        .where(eq(mentorVerifications.id, existingVerification.id));
+    } else {
+      await db
+        .insert(mentorVerifications)
+        .values({
+          userId,
+          status: "approved",
+          reviewedBy: admin.id,
+          reviewNotes: null,
+          jeeRank: formData.jeeRank ? Number(formData.jeeRank) : null,
+        });
+    }
 
     // Send approval email
     const dashboardLink = `${APP_URL}/mentor/dashboard`;
