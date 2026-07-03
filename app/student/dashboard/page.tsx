@@ -10,6 +10,7 @@ import {
   doubtAnswers,
   doubts,
   messages,
+  mentorRequests,
   profiles,
   resourceShares,
   resources,
@@ -18,6 +19,7 @@ import {
   users,
 } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { RequestMentorButton } from "./RequestMentorButton";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +115,7 @@ export default async function StudentDashboard() {
     resourcesReceivedRow,
     lastMessageRow,
     recentResourcesShared,
+    mentorRequestRow,
   ] = await Promise.all([
     db.select().from(profiles).where(eq(profiles.userId, user.id)).limit(1),
     db
@@ -193,6 +196,21 @@ export default async function StudentDashboard() {
       .where(eq(resourceShares.targetUserId, user.id))
       .orderBy(desc(resourceShares.sharedAt))
       .limit(3),
+    db
+      .select({
+        id: mentorRequests.id,
+        status: mentorRequests.status,
+        createdAt: mentorRequests.createdAt,
+      })
+      .from(mentorRequests)
+      .where(
+        and(
+          eq(mentorRequests.studentId, user.id),
+          eq(mentorRequests.status, "pending"),
+        ),
+      )
+      .orderBy(desc(mentorRequests.createdAt))
+      .limit(1),
   ]);
 
   const profile = profileRow[0] ?? null;
@@ -316,12 +334,10 @@ export default async function StudentDashboard() {
             <CardHeader meta="YOUR MENTOR" title="No mentor assigned" />
             <CardBody>
               <p className="text-sm text-ink-soft">
-                You don&apos;t have a mentor assigned yet. We&apos;ll match you
-                with one shortly.
+                You don&apos;t have a mentor assigned yet. Request one and an admin
+                will match you with the right IITian mentor.
               </p>
-              <LinkButton href="/student/sessions" size="md" className="mt-4">
-                Browse sessions →
-              </LinkButton>
+              <RequestMentorButton existingRequest={mentorRequestRow[0] ?? null} />
             </CardBody>
           </Card>
         )}

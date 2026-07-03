@@ -12,6 +12,7 @@ import {
   webhookEvents,
   conversations,
   auditLog,
+  mentorRequests,
 } from "@/db/schema";
 import { and, count, desc, eq, gte, isNull, lt } from "drizzle-orm";
 
@@ -87,6 +88,21 @@ export default async function AdminDashboardPage() {
     .select({ c: count() })
     .from(conversations)
     .where(eq(conversations.flagged, true));
+
+  const pendingMentorRequests = await db
+    .select({
+      id: mentorRequests.id,
+      studentName: profiles.fullName,
+      studentEmail: users.email,
+      message: mentorRequests.message,
+      createdAt: mentorRequests.createdAt,
+    })
+    .from(mentorRequests)
+    .innerJoin(users, eq(users.id, mentorRequests.studentId))
+    .leftJoin(profiles, eq(profiles.userId, mentorRequests.studentId))
+    .where(eq(mentorRequests.status, "pending"))
+    .orderBy(desc(mentorRequests.createdAt))
+    .limit(10);
 
   const pendingRefunds = 0;
 
@@ -167,6 +183,14 @@ export default async function AdminDashboardPage() {
     href: string;
   };
   const alerts: Alert[] = [];
+  if (pendingMentorRequests.length > 0) {
+    alerts.push({
+      id: "a0",
+      severity: "high",
+      title: `${pendingMentorRequests.length} student${pendingMentorRequests.length === 1 ? "" : "s"} requesting a mentor`,
+      href: "/admin/students",
+    });
+  }
   if (pendingVerifs > 0) {
     alerts.push({
       id: "a1",
@@ -236,6 +260,55 @@ export default async function AdminDashboardPage() {
                     </div>
                     <LinkButton href={a.href} variant="ghost" size="sm">
                       Resolve →
+                    </LinkButton>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader
+              meta="MENTOR REQUESTS"
+              title={`${pendingMentorRequests.length} pending`}
+              action={
+                <LinkButton href="/admin/students" variant="ghost" size="sm">
+                  Assign →
+                </LinkButton>
+              }
+            />
+            {pendingMentorRequests.length === 0 ? (
+              <CardBody>
+                <div className="text-sm text-ink-soft text-center py-4">
+                  No mentor requests
+                </div>
+              </CardBody>
+            ) : (
+              <ul>
+                {pendingMentorRequests.map((r: { id: string; studentName: string | null; studentEmail: string | null; message: string | null; createdAt: Date | null }) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center justify-between gap-3 px-5 py-3 border-t border-rule first:border-t-0"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {r.studentName ?? r.studentEmail ?? "Unknown student"}
+                      </div>
+                      {r.message && (
+                        <div className="text-xs text-ink-soft truncate mt-0.5">
+                          &ldquo;{r.message}&rdquo;
+                        </div>
+                      )}
+                      <div className="meta mt-0.5">
+                        requested {r.createdAt ? formatLastSeen(r.createdAt) : "—"} ago
+                      </div>
+                    </div>
+                    <LinkButton
+                      href={`/admin/students`}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Match
                     </LinkButton>
                   </li>
                 ))}

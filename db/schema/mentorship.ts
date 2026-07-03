@@ -17,6 +17,11 @@ export const assignmentStatusEnum = pgEnum("assignment_status", [
   "reassigned",
   "ended",
 ]);
+export const mentorRequestStatusEnum = pgEnum("mentor_request_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
 export const conversationTypeEnum = pgEnum("conversation_type", [
   "student_mentor",
   "doubt_thread",
@@ -43,6 +48,25 @@ export const assignments = pgTable(
   (t) => ({
     studentIdx: index("assignments_student_idx").on(t.studentId),
     mentorIdx: index("assignments_mentor_idx").on(t.mentorId),
+  }),
+);
+
+export const mentorRequests = pgTable(
+  "mentor_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studentId: uuid("student_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    status: mentorRequestStatusEnum("status").notNull().default("pending"),
+    message: text("message"),
+    adminNotes: text("admin_notes"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    ...ts(),
+  },
+  (t) => ({
+    studentIdx: index("mentor_requests_student_idx").on(t.studentId),
+    statusIdx: index("mentor_requests_status_idx").on(t.status),
   }),
 );
 

@@ -28,6 +28,7 @@ export function RealtimeRefresher() {
       "webhook_events",
       "conversations",
       "audit_log",
+      "mentor_requests",
     ];
 
     const channels = tables.map((table) => {
