@@ -8,10 +8,16 @@ export function RealtimeRefresher() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) {
+      console.warn(
+        "[RealtimeRefresher] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY — skipping realtime subscription."
+      );
+      return;
+    }
+
+    const supabase = createClient(url, key);
 
     // Subscribe to changes on key admin tables
     const tables = [
