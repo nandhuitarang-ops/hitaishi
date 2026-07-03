@@ -4,6 +4,7 @@ import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { formatLastSeen, initials } from "@/lib/format";
 import { db } from "@/lib/db";
+import { StudentDashboardClient } from "./StudentDashboardClient";
 import {
   assignments,
   conversationParticipants,
@@ -276,6 +277,7 @@ export default async function StudentDashboard() {
   const mentorDisplayName = mentor?.mentorName ?? mentor?.mentorEmail ?? "";
 
   return (
+    <StudentDashboardClient studentName={firstName}>
     <Shell
       role="student"
       active="dashboard"
@@ -485,5 +487,6 @@ export default async function StudentDashboard() {
 
       
     </Shell>
+    </StudentDashboardClient>
   );
 }
