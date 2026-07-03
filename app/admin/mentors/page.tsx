@@ -92,11 +92,13 @@ export default async function AdminMentorsPage() {
         name: leads.name,
         email: leads.email,
         createdAt: leads.createdAt,
+        data: leads.data,
       })
       .from(leads)
       .where(eq(leads.type, "mentor-application"))
       .orderBy(desc(leads.createdAt)) as Promise<{
         id: string; name: string; email: string; createdAt: Date | null;
+        data: Record<string, unknown>;
       }[]>,
     db
       .select({
@@ -135,6 +137,8 @@ export default async function AdminMentorsPage() {
     /** Only for "verification" entries */
     documents?: unknown;
     linkedinUrl?: string | null;
+    /** Only for "lead" entries — full form payload from JSONB */
+    formData?: Record<string, unknown>;
   };
 
   const queue: QueueItem[] = [
@@ -154,11 +158,12 @@ export default async function AdminMentorsPage() {
       id: l.id,
       displayName: l.name ?? l.email.split("@")[0],
       email: l.email,
-      institute: "—",
-      cohort: "—",
-      jeeRank: null,
+      institute: (l.data?.institute as string) ?? "—",
+      cohort: (l.data?.yearOfStudy as string) ? `Year ${l.data.yearOfStudy}` : "—",
+      jeeRank: (l.data?.jeeRank as string) ?? null,
       createdAt: l.createdAt,
       source: "lead" as const,
+      formData: l.data,
     })),
   ].sort((a, b) => {
     const da = a.createdAt?.getTime() ?? 0;
@@ -206,6 +211,7 @@ export default async function AdminMentorsPage() {
               const docs = p.source === "verification"
                 ? docsFromVerification({ documents: p.documents, linkedinUrl: p.linkedinUrl ?? null })
                 : null;
+              const fd = p.formData;
               return (
                 <li key={p.id} className="px-5 py-5 border-t border-rule first:border-t-0">
                   <div className="flex flex-wrap items-start gap-4">
@@ -216,7 +222,38 @@ export default async function AdminMentorsPage() {
                         {p.institute}{p.cohort !== "—" ? ` · ${p.cohort}` : ""}
                         {p.jeeRank != null ? ` · JEE Adv AIR ${p.jeeRank}` : ""}
                       </div>
-                      <div className="meta mt-1">Applied {p.createdAt ? DATE_FMT.format(new Date(p.createdAt)) : "—"}</div>
+                      <div className="meta mt-1">{p.email} · Applied {p.createdAt ? DATE_FMT.format(new Date(p.createdAt)) : "—"}</div>
+
+                      {/* Lead form detail — expandable inline detail */}
+                      {p.source === "lead" && fd && (
+                        <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1.5 text-xs">
+                          {fd.phone ? <><span className="text-ink-faint">Phone</span><span>{String(fd.phone)}</span></> : null}
+                          {fd.city ? <><span className="text-ink-faint">City</span><span>{String(fd.city)}</span></> : null}
+                          {fd.branch ? <><span className="text-ink-faint">Branch</span><span>{String(fd.branch)}</span></> : null}
+                          {fd.jeeExam ? <><span className="text-ink-faint">JEE Exam</span><span>{String(fd.jeeExam)}</span></> : null}
+                          {fd.jeeYear ? <><span className="text-ink-faint">JEE Year</span><span>{String(fd.jeeYear)}</span></> : null}
+                          {fd.jeeRank ? <><span className="text-ink-faint">JEE Rank</span><span>{String(fd.jeeRank)}</span></> : null}
+                          {Array.isArray(fd.subjects) && fd.subjects.length > 0
+                            ? <><span className="text-ink-faint">Subjects</span><span>{fd.subjects.join(", ")}</span></>
+                            : null}
+                          {Array.isArray(fd.languages) && fd.languages.length > 0
+                            ? <><span className="text-ink-faint">Languages</span><span>{fd.languages.join(", ")}</span></>
+                            : null}
+                          {fd.preferredLevel ? <><span className="text-ink-faint">Batches</span><span>{String(fd.preferredLevel)}</span></> : null}
+                          {fd.gender ? <><span className="text-ink-faint">Gender</span><span>{String(fd.gender)}</span></> : null}
+                          {fd.weeklyHours ? <><span className="text-ink-faint">Weekly hrs</span><span>{String(fd.weeklyHours)}</span></> : null}
+                          {Array.isArray(fd.preferredSlots) && fd.preferredSlots.length > 0
+                            ? <><span className="text-ink-faint">Slots</span><span>{fd.preferredSlots.join(", ")}</span></>
+                            : null}
+                          {fd.motivation
+                            ? <><span className="text-ink-faint self-start">Motivation</span><span className="whitespace-pre-wrap">{String(fd.motivation)}</span></>
+                            : null}
+                          {fd.priorExperience
+                            ? <><span className="text-ink-faint self-start">Experience</span><span className="whitespace-pre-wrap">{String(fd.priorExperience)}</span></>
+                            : null}
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-2 mt-3">
                         {p.source === "verification" && docs ? (
                           <>
