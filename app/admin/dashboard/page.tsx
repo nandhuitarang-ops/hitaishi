@@ -35,60 +35,98 @@ export default async function AdminDashboardPage() {
   endOfDay.setDate(endOfDay.getDate() + 1);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [activeStudentsRow] = await db
-    .select({ c: count() })
-    .from(users)
-    .where(
-      and(
-        eq(users.role, "student"),
-        eq(users.status, "active"),
-        isNull(users.deletedAt),
+  // Run all independent count queries in parallel
+  const [
+    activeStudentsRow,
+    activeMentorsRow,
+    sessionsTodayRow,
+    liveRow,
+    pendingVerifsRow,
+    failedWebhooksRow,
+    flaggedConvsRow,
+    failed24hRow,
+    auditRows,
+    liveSessions,
+  ] = await Promise.all([
+    db
+      .select({ c: count() })
+      .from(users)
+      .where(
+        and(
+          eq(users.role, "student"),
+          eq(users.status, "active"),
+          isNull(users.deletedAt),
+        ),
       ),
-    );
-
-  const [activeMentorsRow] = await db
-    .select({ c: count() })
-    .from(users)
-    .where(
-      and(
-        eq(users.role, "mentor"),
-        eq(users.status, "active"),
-        isNull(users.deletedAt),
+    db
+      .select({ c: count() })
+      .from(users)
+      .where(
+        and(
+          eq(users.role, "mentor"),
+          eq(users.status, "active"),
+          isNull(users.deletedAt),
+        ),
       ),
-    );
-
-  const [sessionsTodayRow] = await db
-    .select({ c: count() })
-    .from(sessions)
-    .where(
-      and(
-        gte(sessions.scheduledAt, startOfDay),
-        lt(sessions.scheduledAt, endOfDay),
+    db
+      .select({ c: count() })
+      .from(sessions)
+      .where(
+        and(
+          gte(sessions.scheduledAt, startOfDay),
+          lt(sessions.scheduledAt, endOfDay),
+        ),
       ),
-    );
+    db.select({ c: count() }).from(sessions).where(eq(sessions.status, "live")),
+    db
+      .select({ c: count() })
+      .from(mentorVerifications)
+      .where(eq(mentorVerifications.status, "pending")),
+    db
+      .select({ c: count() })
+      .from(webhookEvents)
+      .where(isNull(webhookEvents.processedAt)),
+    db
+      .select({ c: count() })
+      .from(conversations)
+      .where(eq(conversations.flagged, true)),
+    db
+      .select({ c: count() })
+      .from(webhookEvents)
+      .where(
+        and(
+          isNull(webhookEvents.processedAt),
+          gte(webhookEvents.createdAt, last24h),
+        ),
+      ),
+    db
+      .select({
+        id: auditLog.id,
+        action: auditLog.action,
+        targetType: auditLog.targetType,
+        targetId: auditLog.targetId,
+        createdAt: auditLog.createdAt,
+        actorName: profiles.fullName,
+        actorEmail: users.email,
+      })
+      .from(auditLog)
+      .leftJoin(users, eq(users.id, auditLog.actorId))
+      .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(10),
+    db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        startedAt: sessions.startedAt,
+      })
+      .from(sessions)
+      .where(eq(sessions.status, "live"))
+      .orderBy(desc(sessions.startedAt))
+      .limit(10),
+  ]);
 
-  const [liveRow] = await db
-    .select({ c: count() })
-    .from(sessions)
-    .where(eq(sessions.status, "live"));
-
-  const mrr = 0;
-
-  const [pendingVerifsRow] = await db
-    .select({ c: count() })
-    .from(mentorVerifications)
-    .where(eq(mentorVerifications.status, "pending"));
-
-  const [failedWebhooksRow] = await db
-    .select({ c: count() })
-    .from(webhookEvents)
-    .where(isNull(webhookEvents.processedAt));
-
-  const [flaggedConvsRow] = await db
-    .select({ c: count() })
-    .from(conversations)
-    .where(eq(conversations.flagged, true));
-
+  // mentor_requests may not exist yet — wrap in try-catch separately
   let pendingMentorRequests: {
     id: string;
     studentName: string | null;
@@ -115,45 +153,6 @@ export default async function AdminDashboardPage() {
     // Table may not exist yet — ignore
     console.warn("[admin/dashboard] mentor_requests table not found — skipping");
   }
-
-  const pendingRefunds = 0;
-
-  const auditRows = await db
-    .select({
-      id: auditLog.id,
-      action: auditLog.action,
-      targetType: auditLog.targetType,
-      targetId: auditLog.targetId,
-      createdAt: auditLog.createdAt,
-      actorName: profiles.fullName,
-      actorEmail: users.email,
-    })
-    .from(auditLog)
-    .leftJoin(users, eq(users.id, auditLog.actorId))
-    .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
-    .orderBy(desc(auditLog.createdAt))
-    .limit(10);
-
-  const liveSessions = await db
-    .select({
-      id: sessions.id,
-      title: sessions.title,
-      startedAt: sessions.startedAt,
-    })
-    .from(sessions)
-    .where(eq(sessions.status, "live"))
-    .orderBy(desc(sessions.startedAt))
-    .limit(10);
-
-  const [failed24hRow] = await db
-    .select({ c: count() })
-    .from(webhookEvents)
-    .where(
-      and(
-        isNull(webhookEvents.processedAt),
-        gte(webhookEvents.createdAt, last24h),
-      ),
-    );
 
   const activeStudents = Number(activeStudentsRow?.c ?? 0);
   const activeMentors = Number(activeMentorsRow?.c ?? 0);
