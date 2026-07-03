@@ -1,18 +1,11 @@
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Pill,
-  Field,
-  Input,
-  Select,
-} from "@/components/ui";
+import { Card, CardBody, CardHeader, Pill } from "@/components/ui";
 import { db } from "@/lib/db";
 import { profiles, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { StudentProfileEditor } from "@/components/student/StudentProfileEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -83,44 +76,18 @@ export default async function StudentProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
         <Card>
           <CardHeader meta="PERSONAL INFO" title="Identity" />
-          <CardBody className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Full name">
-              <Input defaultValue={fullName} />
-            </Field>
-            <Field label="Email">
-              <Input defaultValue={email} readOnly />
-            </Field>
-            <Field label="Phone">
-              <Input defaultValue={phone} />
-            </Field>
-            <Field label="Target exam">
-              <Select defaultValue={targetExamFull}>
-                <option>JEE Main 2026</option>
-                <option>JEE Adv 2026</option>
-                <option>JEE Adv 2027</option>
-              </Select>
-            </Field>
-            <Field label="Dream institute">
-              <Input defaultValue={institute} />
-            </Field>
-            <Field label="Subjects (priority order)">
-              <div className="flex gap-2 flex-wrap">
-                {subjects.length === 0 ? (
-                  <span className="text-sm text-ink-faint">
-                    No subjects added yet.
-                  </span>
-                ) : (
-                  subjects.map((s, i) => (
-                    <Pill key={s} tone="primary">
-                      {i + 1}. {subjectLabel(s)}
-                    </Pill>
-                  ))
-                )}
-              </div>
-            </Field>
-            <div className="md:col-span-2 flex justify-end">
-              <button className="chip-cta">Save changes</button>
-            </div>
+          <CardBody>
+            <StudentProfileEditor
+              initial={{
+                fullName,
+                email,
+                phone,
+                targetExam: profile?.targetExam ?? "jee_main",
+                targetYear: profile?.targetYear ? String(profile.targetYear) : "",
+                institute,
+                subjects,
+              }}
+            />
           </CardBody>
         </Card>
 
