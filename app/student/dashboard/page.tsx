@@ -196,21 +196,28 @@ export default async function StudentDashboard() {
       .where(eq(resourceShares.targetUserId, user.id))
       .orderBy(desc(resourceShares.sharedAt))
       .limit(3),
-    db
-      .select({
-        id: mentorRequests.id,
-        status: mentorRequests.status,
-        createdAt: mentorRequests.createdAt,
-      })
-      .from(mentorRequests)
-      .where(
-        and(
-          eq(mentorRequests.studentId, user.id),
-          eq(mentorRequests.status, "pending"),
-        ),
-      )
-      .orderBy(desc(mentorRequests.createdAt))
-      .limit(1),
+    (async () => {
+      try {
+        return await db
+          .select({
+            id: mentorRequests.id,
+            status: mentorRequests.status,
+            createdAt: mentorRequests.createdAt,
+          })
+          .from(mentorRequests)
+          .where(
+            and(
+              eq(mentorRequests.studentId, user.id),
+              eq(mentorRequests.status, "pending"),
+            ),
+          )
+          .orderBy(desc(mentorRequests.createdAt))
+          .limit(1);
+      } catch {
+        // Table may not exist yet — return empty array
+        return [];
+      }
+    })(),
   ]);
 
   const profile = profileRow[0] ?? null;

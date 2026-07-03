@@ -89,20 +89,32 @@ export default async function AdminDashboardPage() {
     .from(conversations)
     .where(eq(conversations.flagged, true));
 
-  const pendingMentorRequests = await db
-    .select({
-      id: mentorRequests.id,
-      studentName: profiles.fullName,
-      studentEmail: users.email,
-      message: mentorRequests.message,
-      createdAt: mentorRequests.createdAt,
-    })
-    .from(mentorRequests)
-    .innerJoin(users, eq(users.id, mentorRequests.studentId))
-    .leftJoin(profiles, eq(profiles.userId, mentorRequests.studentId))
-    .where(eq(mentorRequests.status, "pending"))
-    .orderBy(desc(mentorRequests.createdAt))
-    .limit(10);
+  let pendingMentorRequests: {
+    id: string;
+    studentName: string | null;
+    studentEmail: string | null;
+    message: string | null;
+    createdAt: Date | null;
+  }[] = [];
+  try {
+    pendingMentorRequests = await db
+      .select({
+        id: mentorRequests.id,
+        studentName: profiles.fullName,
+        studentEmail: users.email,
+        message: mentorRequests.message,
+        createdAt: mentorRequests.createdAt,
+      })
+      .from(mentorRequests)
+      .innerJoin(users, eq(users.id, mentorRequests.studentId))
+      .leftJoin(profiles, eq(profiles.userId, mentorRequests.studentId))
+      .where(eq(mentorRequests.status, "pending"))
+      .orderBy(desc(mentorRequests.createdAt))
+      .limit(10);
+  } catch {
+    // Table may not exist yet — ignore
+    console.warn("[admin/dashboard] mentor_requests table not found — skipping");
+  }
 
   const pendingRefunds = 0;
 
