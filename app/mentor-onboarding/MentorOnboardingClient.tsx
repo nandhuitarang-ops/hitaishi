@@ -155,20 +155,20 @@ export function MentorOnboardingClient() {
       email,
       phone,
       city,
-      gender: gender || undefined,
+      gender: gender || "",
       institute,
       branch,
-      yearOfStudy: "Graduated", // Mock value
+      yearOfStudy: "Graduated",
       jeeExam: "JEE Advanced",
       jeeYear: gradYear,
       jeeRank: jeeRank || "N/A",
       subjects: subjectsList,
       preferredLevel: batches.join(", ") || "All",
-      languages: ["English", "Hindi"], // Mock defaults
+      languages: ["English", "Hindi"],
       weeklyHours: `${weeklyHours} hours`,
       preferredSlots: availability,
       motivation,
-      priorExperience: priorExperience || undefined,
+      priorExperience: priorExperience || "",
     };
 
     try {

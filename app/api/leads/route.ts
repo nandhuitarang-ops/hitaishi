@@ -35,8 +35,9 @@ export async function POST(request: Request) {
 
   const parsed = leadSchema.safeParse(body);
   if (!parsed.success) {
-    console.warn("[/api/leads] validation failed", parsed.error.issues);
-    return NextResponse.json({ ok: false, error: "Validation failed." }, { status: 400 });
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    console.warn("[/api/leads] validation failed", issues);
+    return NextResponse.json({ ok: false, error: issues || "Validation failed." }, { status: 400 });
   }
 
   const data = parsed.data;
