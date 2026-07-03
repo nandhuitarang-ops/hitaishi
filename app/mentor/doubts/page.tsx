@@ -6,7 +6,7 @@ import { assignments, doubtAnswers, doubts, profiles, users } from "@/db/schema"
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);

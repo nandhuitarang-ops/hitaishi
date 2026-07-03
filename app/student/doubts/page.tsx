@@ -16,7 +16,7 @@ import { doubtAnswers, doubts } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { createDoubt } from "./actions";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const tabs = ["All", "Waiting", "Answered", "Resolved"] as const;
 

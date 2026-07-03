@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { sessions, sessionParticipants, users, profiles, conversations, messages } from "@/db/schema";
 import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function elapsedHms(d: Date | null): string {
   if (!d) return "00:00:00";

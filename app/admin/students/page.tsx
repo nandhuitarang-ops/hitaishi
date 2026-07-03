@@ -4,7 +4,7 @@ import { initials } from "@/lib/format";
 import { requireRole } from "@/lib/session";
 import { getStudentsList } from "@/lib/admin-cache";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const STUDENT_LIMIT = 50;
 

@@ -6,7 +6,7 @@ import { requireRole } from "@/lib/session";
 import { users, profiles, mentorVerifications, assignments, doubtAnswers } from "@/db/schema";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 

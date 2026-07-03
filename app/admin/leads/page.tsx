@@ -3,7 +3,7 @@ import type { Lead } from "@/lib/leadTypes";
 import { LeadsTableActions } from "./LeadsTableActions";
 import { Mail, Phone, Inbox, Calendar, MessageSquare } from "lucide-react";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const TYPE_LABEL: Record<Lead["type"], string> = {
   "student-inquiry": "Student",

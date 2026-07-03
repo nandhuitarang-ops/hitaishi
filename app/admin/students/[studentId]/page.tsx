@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/session";
 import { users, profiles, assignments, mentorRequests } from "@/db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function AdminStudentProfilePage({
   params,

@@ -9,7 +9,7 @@ import { sessions, sessionParticipants, users, profiles } from "@/db/schema";
 import { and, desc, eq, gt, gte, inArray, lt, or } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function fmtDateTime(d: Date) {
   return d.toLocaleString("en-GB", {

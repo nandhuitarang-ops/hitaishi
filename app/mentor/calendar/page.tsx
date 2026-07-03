@@ -5,7 +5,7 @@ import { mentorAvailability, sessions } from "@/db/schema";
 import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hours = [

@@ -14,7 +14,7 @@ import {
 import { and, desc, eq, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const statusTone = {
   on_track: "primary",

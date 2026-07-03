@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/session";
 import { auditLog, users, profiles } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 

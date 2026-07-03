@@ -5,7 +5,7 @@ import { resources } from "@/db/schema";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const SCOPES = [
   { value: "private", label: "Private — only me" },

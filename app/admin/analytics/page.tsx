@@ -2,7 +2,7 @@ import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const ranges = ["7d", "30d", "90d", "All"];
 

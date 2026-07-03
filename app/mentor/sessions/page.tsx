@@ -6,7 +6,7 @@ import { assignments, sessions, sessionParticipants, users, profiles } from "@/d
 import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type SessionRow = {
   id: string;

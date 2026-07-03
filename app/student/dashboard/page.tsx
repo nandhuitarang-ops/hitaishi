@@ -21,7 +21,7 @@ import {
 import { getCurrentUser } from "@/lib/session";
 import { RequestMentorButton } from "./RequestMentorButton";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function greetingFor(d: Date): string {
   const h = d.getHours();

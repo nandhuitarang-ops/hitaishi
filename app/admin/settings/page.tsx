@@ -2,7 +2,7 @@ import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, Field, Input, Pill } from "@/components/ui";
 import { requireRole } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 

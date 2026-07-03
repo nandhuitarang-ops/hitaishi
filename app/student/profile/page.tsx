@@ -14,7 +14,7 @@ import { db } from "@/lib/db";
 import { profiles, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const notificationPrefs = [
   { key: "wa", label: "WhatsApp updates", value: true },

@@ -9,7 +9,7 @@ import { users, profiles, assignments } from "@/db/schema";
 import { and, count, desc, eq, isNull, not, inArray, sql } from "drizzle-orm";
 import { MatchButton } from "./MatchButton";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function AdminMatchMentorPage({
   params,
