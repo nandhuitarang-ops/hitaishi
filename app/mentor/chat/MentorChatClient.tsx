@@ -148,10 +148,15 @@ export function MentorChatClient({
     fetch(`/api/chat/conversations/${activeId}/messages`)
       .then((r) => r.json())
       .then((data) => {
-        setMessagesByConv((prev) => ({
-          ...prev,
-          [activeId]: (data.items || []).map((m: any) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: m.createdAt })),
-        }));
+        setMessagesByConv((prev) => {
+          const existing = prev[activeId] ?? [];
+          const fetched = (data.items || []).map((m: any) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: m.createdAt }));
+          // Merge: keep existing messages (especially pending/optimistic ones)
+          // and only add fetched messages that aren't already present
+          const existingIds = new Set(existing.map((m) => m.id));
+          const merged = [...existing, ...fetched.filter((m: Msg) => !existingIds.has(m.id))];
+          return { ...prev, [activeId]: merged };
+        });
       })
       .catch(() => {});
   }, [activeId]);
