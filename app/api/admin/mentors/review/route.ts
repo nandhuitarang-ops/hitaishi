@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
 import { users, profiles, mentorVerifications } from "@/db/schema";
 import { leads } from "@/db/schema/leads";
-import { hashPassword } from "@/lib/auth";
 import { sendMentorApprovedEmail, sendMentorRejectedEmail } from "@/lib/emails/email-service";
 
 export const dynamic = "force-dynamic";
@@ -175,19 +174,29 @@ async function handleLeadReview(
 
     // Send approval email
     const dashboardLink = `${APP_URL}/mentor/dashboard`;
-    sendMentorApprovedEmail(email, fullName, dashboardLink).catch((e) => {
-      console.error("Failed to send mentor approved email:", e);
-    });
+    const emailResult = await sendMentorApprovedEmail(email, fullName, dashboardLink);
+    if (!emailResult.ok) {
+      console.error("Failed to send mentor approved email:", emailResult.error);
+    }
 
-    return NextResponse.json({ ok: true, message: "Mentor approved successfully." });
-  } else {
-    // Reject lead — send rejection email
-    sendMentorRejectedEmail(email, fullName, reason).catch((e) => {
-      console.error("Failed to send mentor rejection email:", e);
+    return NextResponse.json({
+      ok: true,
+      message: "Mentor approved successfully.",
+      emailMocked: "mock" in emailResult ? emailResult.mock : false,
     });
+  } else {
+    // Reject lead — send rejection email with reason
+    const emailResult = await sendMentorRejectedEmail(email, fullName, reason);
+    if (!emailResult.ok) {
+      console.error("Failed to send mentor rejection email:", emailResult.error);
+    }
 
     // Optionally mark the lead as reviewed — we can add a status field later
-    return NextResponse.json({ ok: true, message: "Lead rejection email sent." });
+    return NextResponse.json({
+      ok: true,
+      message: "Lead rejected. Rejection email sent.",
+      emailMocked: "mock" in emailResult ? emailResult.mock : false,
+    });
   }
 }
 
@@ -244,11 +253,16 @@ async function handleVerificationReview(
 
     // Send approval email
     const dashboardLink = `${APP_URL}/mentor/dashboard`;
-    sendMentorApprovedEmail(userRow.email, fullName, dashboardLink).catch((e) => {
-      console.error("Failed to send mentor approved email:", e);
-    });
+    const emailResult = await sendMentorApprovedEmail(userRow.email, fullName, dashboardLink);
+    if (!emailResult.ok) {
+      console.error("Failed to send mentor approved email:", emailResult.error);
+    }
 
-    return NextResponse.json({ ok: true, message: "Mentor approved successfully." });
+    return NextResponse.json({
+      ok: true,
+      message: "Mentor approved successfully.",
+      emailMocked: "mock" in emailResult ? emailResult.mock : false,
+    });
   } else {
     await db
       .update(mentorVerifications)
@@ -261,10 +275,15 @@ async function handleVerificationReview(
       .where(eq(mentorVerifications.id, id));
 
     // Send rejection email
-    sendMentorRejectedEmail(userRow.email, fullName, reason).catch((e) => {
-      console.error("Failed to send mentor rejection email:", e);
-    });
+    const emailResult = await sendMentorRejectedEmail(userRow.email, fullName, reason);
+    if (!emailResult.ok) {
+      console.error("Failed to send mentor rejection email:", emailResult.error);
+    }
 
-    return NextResponse.json({ ok: true, message: "Mentor rejected." });
+    return NextResponse.json({
+      ok: true,
+      message: "Mentor rejected.",
+      emailMocked: "mock" in emailResult ? emailResult.mock : false,
+    });
   }
 }

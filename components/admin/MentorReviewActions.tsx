@@ -15,6 +15,7 @@ export function MentorReviewActions({ id, source }: Props) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [emailMocked, setEmailMocked] = useState(false);
 
   const submit = useCallback(async (action: "approve" | "reject") => {
     if (action === "reject" && !reason.trim()) return;
@@ -35,6 +36,7 @@ export function MentorReviewActions({ id, source }: Props) {
       }
       setLoading(null);
       setDone(true);
+      setEmailMocked(data.emailMocked === true);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -43,7 +45,14 @@ export function MentorReviewActions({ id, source }: Props) {
   }, [id, source, reason, router]);
 
   if (done) {
-    return <span className="text-xs text-primary-deep font-medium">Done ✓</span>;
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-primary-deep font-medium">Done ✓</span>
+        {emailMocked && (
+          <span className="text-xs text-warn font-medium" title="RESEND_API_KEY not set in Vercel env vars">Email not sent (mock)</span>
+        )}
+      </div>
+    );
   }
 
   if (error) {
