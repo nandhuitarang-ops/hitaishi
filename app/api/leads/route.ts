@@ -35,7 +35,39 @@ export async function POST(request: Request) {
 
   const parsed = leadSchema.safeParse(body);
   if (!parsed.success) {
-    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    const fieldLabels: Record<string, string> = {
+      name: "Full name",
+      email: "Email address",
+      phone: "Phone number",
+      city: "City",
+      gender: "Gender",
+      institute: "Institute / IIT name",
+      branch: "Branch of study",
+      yearOfStudy: "Year of study",
+      jeeExam: "JEE exam",
+      jeeYear: "JEE year",
+      jeeRank: "JEE rank",
+      subjects: "Subjects",
+      preferredLevel: "Preferred student batches",
+      languages: "Languages",
+      weeklyHours: "Weekly hours",
+      preferredSlots: "Availability slots",
+      motivation: "Motivation statement",
+      priorExperience: "Prior experience",
+      currentClass: "Current class",
+      coachingInstitute: "Coaching institute",
+      institutionName: "Institution name",
+      contactPerson: "Contact person",
+      role: "Role",
+      studentCount: "Student count",
+      partnershipModel: "Partnership model",
+      message: "Message",
+    };
+    const issues = parsed.error.issues.map((i) => {
+      const field = i.path.join(".");
+      const label = fieldLabels[field] || field;
+      return `${label}: ${i.message}`;
+    }).join("; ");
     console.warn("[/api/leads] validation failed", issues);
     return NextResponse.json({ ok: false, error: issues || "Validation failed." }, { status: 400 });
   }

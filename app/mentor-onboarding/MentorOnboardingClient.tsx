@@ -163,7 +163,7 @@ export function MentorOnboardingClient() {
       jeeYear: gradYear,
       jeeRank: jeeRank || "N/A",
       subjects: subjectsList,
-      preferredLevel: batches.join(", ").slice(0, 40) || "All",
+      preferredLevel: batches.join(", ").slice(0, 80) || "All",
       languages: ["English", "Hindi"],
       weeklyHours: `${weeklyHours} hours`,
       preferredSlots: availability,
