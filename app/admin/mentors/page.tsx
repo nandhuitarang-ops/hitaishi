@@ -4,6 +4,7 @@ import { initials } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
 import { users, profiles, mentorVerifications, assignments, doubtAnswers } from "@/db/schema";
+import { leads } from "@/db/schema/leads";
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +61,7 @@ export default async function AdminMentorsPage() {
   await requireRole("admin");
 
   // Run queries in parallel
-  const [pending, active, [activeCountRow]] = await Promise.all([
+  const [pending, leadApps, active, [activeCountRow]] = await Promise.all([
     db
       .select({
         id: mentorVerifications.id,
@@ -82,6 +83,20 @@ export default async function AdminMentorsPage() {
         id: string; userId: string; documents: unknown; linkedinUrl: string | null;
         jeeRank: number | null; createdAt: Date | null; name: string | null;
         email: string; institute: string | null; graduationYear: number | null;
+      }[]>,
+    // Mentor applications submitted via the public /mentor-onboarding form go to `leads` (type="mentor-application"),
+    // not to mentorVerifications (which requires an existing user). Show them in the same queue.
+    db
+      .select({
+        id: leads.id,
+        name: leads.name,
+        email: leads.email,
+        createdAt: leads.createdAt,
+      })
+      .from(leads)
+      .where(eq(leads.type, "mentor-application"))
+      .orderBy(desc(leads.createdAt)) as Promise<{
+        id: string; name: string; email: string; createdAt: Date | null;
       }[]>,
     db
       .select({
@@ -105,6 +120,51 @@ export default async function AdminMentorsPage() {
       .from(users)
       .where(and(eq(users.role, "mentor"), eq(users.status, "active"), isNull(users.deletedAt))),
   ]);
+
+  // Normalise both sources into a single display list, newest first
+  type QueueItem = {
+    id: string;
+    displayName: string;
+    email: string;
+    institute: string;
+    cohort: string;
+    jeeRank: string | null;
+    createdAt: Date | null;
+    /** Source discriminator — "verification" entries have documents/linkedin badges */
+    source: "verification" | "lead";
+    /** Only for "verification" entries */
+    documents?: unknown;
+    linkedinUrl?: string | null;
+  };
+
+  const queue: QueueItem[] = [
+    ...pending.map((v) => ({
+      id: v.id,
+      displayName: v.name ?? v.email.split("@")[0],
+      email: v.email,
+      institute: v.institute ?? "—",
+      cohort: v.graduationYear ? `Class of ${v.graduationYear}` : "—",
+      jeeRank: v.jeeRank != null ? String(v.jeeRank) : null,
+      createdAt: v.createdAt,
+      source: "verification" as const,
+      documents: v.documents,
+      linkedinUrl: v.linkedinUrl,
+    })),
+    ...leadApps.map((l) => ({
+      id: l.id,
+      displayName: l.name ?? l.email.split("@")[0],
+      email: l.email,
+      institute: "—",
+      cohort: "—",
+      jeeRank: null,
+      createdAt: l.createdAt,
+      source: "lead" as const,
+    })),
+  ].sort((a, b) => {
+    const da = a.createdAt?.getTime() ?? 0;
+    const db_ = b.createdAt?.getTime() ?? 0;
+    return db_ - da;
+  });
 
   const activeIds = active.map((m) => m.id);
 
@@ -137,32 +197,37 @@ export default async function AdminMentorsPage() {
   return (
     <Shell role="admin" active="mentors" pageCode="A.04 — MENTORS MANAGEMENT" pageTitle="Mentors" pageSubtitle="Verification queue and active mentor roster.">
       <Card className="mb-6">
-        <CardHeader meta={`VERIFICATION QUEUE · ${pending.length} PENDING`} title="Applications awaiting review" />
-        {pending.length === 0 ? (
+        <CardHeader meta={`VERIFICATION QUEUE · ${queue.length} PENDING`} title="Applications awaiting review" />
+        {queue.length === 0 ? (
           <div className="px-5 py-6 text-sm text-ink-soft text-center italic">No data yet</div>
         ) : (
           <ul>
-            {pending.map((p) => {
-              const docs = docsFromVerification({ documents: p.documents, linkedinUrl: p.linkedinUrl });
-              const displayName = p.name ?? p.email.split("@")[0];
-              const institute = p.institute ?? "—";
-              const cohort = p.graduationYear ? `Class of ${p.graduationYear}` : "—";
+            {queue.map((p) => {
+              const docs = p.source === "verification"
+                ? docsFromVerification({ documents: p.documents, linkedinUrl: p.linkedinUrl ?? null })
+                : null;
               return (
                 <li key={p.id} className="px-5 py-5 border-t border-rule first:border-t-0">
                   <div className="flex flex-wrap items-start gap-4">
-                    <div className="avatar !w-12 !h-12 !text-base">{initials(displayName)}</div>
+                    <div className="avatar !w-12 !h-12 !text-base">{initials(p.displayName)}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-serif text-lg">{displayName}</div>
+                      <div className="font-serif text-lg">{p.displayName}</div>
                       <div className="text-sm text-ink-soft mt-1">
-                        {institute} · {cohort}
+                        {p.institute}{p.cohort !== "—" ? ` · ${p.cohort}` : ""}
                         {p.jeeRank != null ? ` · JEE Adv AIR ${p.jeeRank}` : ""}
                       </div>
                       <div className="meta mt-1">Applied {p.createdAt ? DATE_FMT.format(new Date(p.createdAt)) : "—"}</div>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <Pill tone={docTone[docs.degree]}>Degree</Pill>
-                        <Pill tone={docTone[docs.id]}>ID card</Pill>
-                        <Pill tone={docTone[docs.scorecard]}>JEE scorecard</Pill>
-                        <Pill tone={docTone[docs.linkedin]}>LinkedIn</Pill>
+                        {p.source === "verification" && docs ? (
+                          <>
+                            <Pill tone={docTone[docs.degree]}>Degree</Pill>
+                            <Pill tone={docTone[docs.id]}>ID card</Pill>
+                            <Pill tone={docTone[docs.scorecard]}>JEE scorecard</Pill>
+                            <Pill tone={docTone[docs.linkedin]}>LinkedIn</Pill>
+                          </>
+                        ) : (
+                          <Pill tone="neutral">Via web form</Pill>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
