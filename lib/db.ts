@@ -18,20 +18,16 @@ function getDb() {
   let client = globalForDb.__hitaishi_pg;
   if (!client) {
     client = postgres(url, {
-      max: 10,
+      max: 5,
       ssl: "require",
       prepare: false,
       onnotice: () => {},
     });
-    if (process.env.NODE_ENV !== "production") {
-      globalForDb.__hitaishi_pg = client;
-    }
+    globalForDb.__hitaishi_pg = client;
   }
 
-  const dbInstance = drizzle(client, { schema });
-  if (process.env.NODE_ENV !== "production") {
-    globalForDb.__hitaishi_db = dbInstance;
-  }
+  const dbInstance = globalForDb.__hitaishi_db ?? drizzle(client, { schema });
+  globalForDb.__hitaishi_db = dbInstance;
   return dbInstance;
 }
 
