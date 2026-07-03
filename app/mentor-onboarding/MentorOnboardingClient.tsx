@@ -163,12 +163,13 @@ export function MentorOnboardingClient() {
       jeeYear: gradYear,
       jeeRank: jeeRank || "N/A",
       subjects: subjectsList,
-      preferredLevel: batches.join(", ") || "All",
+      preferredLevel: batches.join(", ").slice(0, 40) || "All",
       languages: ["English", "Hindi"],
       weeklyHours: `${weeklyHours} hours`,
       preferredSlots: availability,
       motivation,
       priorExperience: priorExperience || "",
+      website: "",
     };
 
     try {
