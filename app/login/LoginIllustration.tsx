@@ -1,35 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-
-// Dynamically import Lottie to avoid SSR issues
-const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
-
-// Public Lottie animation URLs for each role
-const LOTTIE_URLS: Record<string, string> = {
-  student:
-    "https://lottie.host/d7571660-7298-4964-890f-82b6c67b9bd2/RxKZKqIxeW.json",
-  mentor:
-    "https://lottie.host/0e842727-2400-4dde-9f96-01ec8a80ad48/YiSXFuSCVF.json",
-  admin:
-    "https://lottie.host/b2143e60-e767-4492-8e71-e01a67e97498/VYbM8dOtRU.json",
-};
-
-// Fallback static SVG illustrations per role (shown while Lottie loads or if it fails)
 function StudentFallbackSVG() {
   return (
     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      {/* Book */}
       <rect x="50" y="80" width="100" height="75" rx="6" fill="var(--color-primary-soft)" stroke="var(--color-primary)" strokeWidth="1.5" />
       <rect x="58" y="88" width="84" height="4" rx="2" fill="var(--color-primary)" opacity="0.3" />
       <rect x="58" y="96" width="60" height="4" rx="2" fill="var(--color-primary)" opacity="0.2" />
       <rect x="58" y="104" width="72" height="4" rx="2" fill="var(--color-primary)" opacity="0.15" />
-      {/* Graduation cap */}
       <polygon points="100,30 60,55 100,70 140,55" fill="var(--color-primary)" opacity="0.8" />
       <rect x="97" y="55" width="6" height="25" fill="var(--color-primary)" opacity="0.6" />
       <circle cx="100" cy="28" r="4" fill="var(--color-secondary)" />
-      {/* Stars */}
       <circle cx="40" cy="50" r="3" fill="var(--color-secondary)" opacity="0.5" />
       <circle cx="160" cy="40" r="2.5" fill="var(--color-primary)" opacity="0.4" />
       <circle cx="155" cy="120" r="2" fill="var(--color-secondary)" opacity="0.3" />
@@ -40,18 +18,14 @@ function StudentFallbackSVG() {
 function MentorFallbackSVG() {
   return (
     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      {/* Whiteboard */}
       <rect x="40" y="50" width="120" height="90" rx="8" fill="white" stroke="var(--color-primary)" strokeWidth="1.5" />
       <line x1="55" y1="75" x2="145" y2="75" stroke="var(--color-primary)" strokeWidth="1" opacity="0.3" />
       <line x1="55" y1="90" x2="120" y2="90" stroke="var(--color-secondary)" strokeWidth="1" opacity="0.3" />
       <line x1="55" y1="105" x2="135" y2="105" stroke="var(--color-primary)" strokeWidth="1" opacity="0.2" />
-      {/* Pointer */}
       <line x1="100" y1="140" x2="100" y2="175" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
-      {/* Light bulb */}
       <circle cx="100" cy="30" r="12" fill="var(--color-secondary-soft)" stroke="var(--color-secondary)" strokeWidth="1.5" />
       <path d="M95 28 L100 22 L105 28" stroke="var(--color-secondary)" strokeWidth="1.5" strokeLinecap="round" />
       <line x1="100" y1="34" x2="100" y2="40" stroke="var(--color-secondary)" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Decorative shapes */}
       <circle cx="30" cy="80" r="3" fill="var(--color-secondary)" opacity="0.4" />
       <circle cx="170" cy="70" r="2.5" fill="var(--color-primary)" opacity="0.3" />
     </svg>
@@ -61,18 +35,14 @@ function MentorFallbackSVG() {
 function AdminFallbackSVG() {
   return (
     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      {/* Dashboard */}
       <rect x="30" y="40" width="140" height="110" rx="10" fill="white" stroke="var(--color-primary)" strokeWidth="1.5" />
-      {/* Chart bars */}
       <rect x="50" y="100" width="16" height="35" rx="3" fill="var(--color-primary)" opacity="0.7" />
       <rect x="72" y="85" width="16" height="50" rx="3" fill="var(--color-secondary)" opacity="0.7" />
       <rect x="94" y="70" width="16" height="65" rx="3" fill="var(--color-primary)" opacity="0.5" />
       <rect x="116" y="90" width="16" height="45" rx="3" fill="var(--color-secondary)" opacity="0.5" />
       <rect x="138" y="75" width="16" height="60" rx="3" fill="var(--color-primary)" opacity="0.3" />
-      {/* Pie chart */}
       <circle cx="80" cy="60" r="12" fill="var(--color-primary-soft)" stroke="var(--color-primary)" strokeWidth="1" />
       <path d="M80 48 A12 12 0 0 1 92 60 L80 60 Z" fill="var(--color-secondary)" />
-      {/* Gear */}
       <circle cx="140" cy="55" r="8" fill="var(--color-primary-soft)" stroke="var(--color-primary)" strokeWidth="1.5" />
       <circle cx="140" cy="55" r="3" fill="white" />
     </svg>
@@ -92,50 +62,11 @@ interface LoginIllustrationProps {
 }
 
 export function LoginIllustration({ role }: LoginIllustrationProps) {
-  const [animationData, setAnimationData] = useState<any>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setAnimationData(null);
-    setFailed(false);
-
-    const url = LOTTIE_URLS[role];
-    if (!url) {
-      setFailed(true);
-      return;
-    }
-
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error("fetch failed");
-        return res.json();
-      })
-      .then((data) => {
-        if (!cancelled) setAnimationData(data);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [role]);
-
   const FallbackComponent = FALLBACK_SVGS[role] ?? StudentFallbackSVG;
 
-  if (failed || !animationData) {
-    return (
-      <div className="w-full max-w-[280px] mx-auto aspect-square flex items-center justify-center opacity-90">
-        <FallbackComponent />
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full max-w-[280px] mx-auto aspect-square">
-      <Lottie animationData={animationData} loop autoplay className="w-full h-full" />
+    <div className="w-full max-w-[280px] mx-auto aspect-square flex items-center justify-center opacity-90">
+      <FallbackComponent />
     </div>
   );
 }
