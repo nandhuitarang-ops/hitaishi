@@ -1,5 +1,9 @@
 -- mentor_requests table
-CREATE TYPE "mentor_request_status" AS ENUM ('pending', 'approved', 'rejected');
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'mentor_request_status') THEN
+        CREATE TYPE "mentor_request_status" AS ENUM ('pending', 'approved', 'rejected');
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS "mentor_requests" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
