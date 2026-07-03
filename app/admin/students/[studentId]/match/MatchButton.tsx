@@ -14,11 +14,13 @@ export function MatchButton({ studentId, mentorId, mentorName }: MatchButtonProp
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleAssign = async () => {
     if (!confirm(`Assign ${mentorName} as mentor?`)) return;
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
       const res = await fetch("/api/admin/assignments", {
@@ -32,12 +34,11 @@ export function MatchButton({ studentId, mentorId, mentorName }: MatchButtonProp
         throw new Error(data.error || "Assignment failed");
       }
 
-      alert("Mentor assigned successfully! Notifications and emails have been sent.");
+      setSuccess(true);
       router.push(`/admin/students/${studentId}`);
       router.refresh();
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -46,11 +47,11 @@ export function MatchButton({ studentId, mentorId, mentorName }: MatchButtonProp
     <div className="space-y-2">
       <Button
         onClick={handleAssign}
-        disabled={loading}
+        loading={loading}
         size="md"
         className="w-full"
       >
-        {loading ? "Assigning..." : `Assign ${mentorName}`}
+        {success ? "Assigned ✓" : `Assign ${mentorName}`}
       </Button>
       {error && (
         <p className="text-xs text-red-600 text-center">{error}</p>

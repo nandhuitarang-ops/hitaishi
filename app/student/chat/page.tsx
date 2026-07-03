@@ -9,8 +9,6 @@ import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages, profiles, sessionParticipants, sessions, users } from "@/db/schema";
 import { ChatClient, type ConvListItem, type InitialMessage, type RightPanelData } from "./ChatClient";
 
-export const dynamic = "force-dynamic";
-
 export default async function StudentChatPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -37,7 +35,7 @@ export default async function StudentChatPage() {
   const convIds = (myParticipations as any[]).map((c) => c.convId);
   const lastReadMap = new Map<string, Date>((myParticipations as any[]).map((c) => [c.convId, c.lastReadAt]));
 
-  const [convMeta, allParticipants, latestMsgs, messageRows, nextSessionRows] = await Promise.all([
+  const [convMeta, allParticipants, latestMsgs, nextSessionRows] = await Promise.all([
     db.select().from(conversations).where(inArray(conversations.id, convIds)),
     db
       .select({
@@ -63,17 +61,6 @@ export default async function StudentChatPage() {
       .from(messages)
       .where(inArray(messages.conversationId, convIds))
       .orderBy(desc(messages.createdAt)),
-    db
-      .select({
-        id: messages.id,
-        conversationId: messages.conversationId,
-        senderId: messages.senderId,
-        body: messages.body,
-        createdAt: messages.createdAt,
-      })
-      .from(messages)
-      .where(inArray(messages.conversationId, convIds))
-      .orderBy(asc(messages.createdAt)),
     db
       .select({
         id: sessions.id,
@@ -122,12 +109,7 @@ export default async function StudentChatPage() {
   });
 
   const activeId = initialConvs[0]?.id ?? null;
-  const initialMessages: InitialMessage[] = activeId
-    ? (messageRows as any[])
-        .filter((m) => m.conversationId === activeId)
-        .slice(-100)
-        .map((m) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: new Date(m.createdAt).toISOString() }))
-    : [];
+  const initialMessages: InitialMessage[] = [];
   const next = nextSessionRows[0] as any;
   const otherParticipant = (allParticipants as any[]).find(
     (p) => p.conversationId === activeId && p.userId !== user.id,

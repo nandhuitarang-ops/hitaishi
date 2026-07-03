@@ -8,6 +8,7 @@ export function RequestMentorButton({ existingRequest }: { existingRequest?: { i
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [requestStatus, setRequestStatus] = useState(existingRequest?.status || null);
+  const [error, setError] = useState<string | null>(null);
 
   if (requestStatus === "pending") {
     return (
@@ -38,6 +39,7 @@ export function RequestMentorButton({ existingRequest }: { existingRequest?: { i
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/student/request-mentor", {
         method: "POST",
@@ -49,7 +51,7 @@ export function RequestMentorButton({ existingRequest }: { existingRequest?: { i
       setRequestStatus("pending");
       setShowForm(false);
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -65,9 +67,12 @@ export function RequestMentorButton({ existingRequest }: { existingRequest?: { i
         rows={3}
         maxLength={500}
       />
+      {error && (
+        <p className="text-xs text-red-600">{error}</p>
+      )}
       <div className="flex gap-3">
-        <Button type="submit" size="md" disabled={loading} className="flex-1">
-          {loading ? "Submitting..." : "Submit Request ✓"}
+        <Button type="submit" size="md" loading={loading} className="flex-1">
+          Submit Request ✓
         </Button>
         <Button
           type="button"

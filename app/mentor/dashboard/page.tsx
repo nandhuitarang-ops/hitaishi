@@ -12,7 +12,7 @@ import {
 import { and, asc, desc, eq, gte, lt, or, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -30,92 +30,96 @@ export default async function MentorDashboard() {
   const dayStart = startOfDay(now);
   const dayEnd = endOfDay(now);
 
-  const [studentsCountRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(assignments)
-    .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active")));
-
-  const [sessionsTodayRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(sessions)
-    .where(
-      and(
-        eq(sessions.hostId, user.id),
-        gte(sessions.scheduledAt, dayStart),
-        lt(sessions.scheduledAt, dayEnd),
+  const [
+    studentsCountRows,
+    sessionsTodayRows,
+    doubtsPendingRows,
+    attentionRows,
+    pendingDoubtRows,
+    todayCalendarRows,
+  ] = await Promise.all([
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(assignments)
+      .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active"))),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.hostId, user.id),
+          gte(sessions.scheduledAt, dayStart),
+          lt(sessions.scheduledAt, dayEnd),
+        ),
       ),
-    );
-
-  const [doubtsPendingRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(doubts)
-    .where(
-      or(
-        eq(doubts.status, "open"),
-        and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(doubts)
+      .where(
+        or(
+          eq(doubts.status, "open"),
+          and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+        ),
       ),
-    );
-
-  const attentionRows = await db
-    .select({
-      studentId: users.id,
-      fullName: profiles.fullName,
-      email: users.email,
-      lastLoginAt: users.lastLoginAt,
-      joinedAt: assignments.startedAt,
-    })
-    .from(assignments)
-    .innerJoin(users, eq(users.id, assignments.studentId))
-    .leftJoin(profiles, eq(profiles.userId, users.id))
-    .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active")))
-    .orderBy(sql`${users.lastLoginAt} ASC NULLS LAST`, desc(assignments.startedAt))
-    .limit(5);
-
-  const pendingDoubtRows = await db
-    .select({
-      id: doubts.id,
-      subject: doubts.subject,
-      topic: doubts.topic,
-      body: doubts.body,
-      createdAt: doubts.createdAt,
-      status: doubts.status,
-      studentId: users.id,
-      studentName: profiles.fullName,
-      studentEmail: users.email,
-    })
-    .from(doubts)
-    .innerJoin(users, eq(users.id, doubts.studentId))
-    .leftJoin(profiles, eq(profiles.userId, doubts.studentId))
-    .where(
-      or(
-        eq(doubts.status, "open"),
-        and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
-      ),
-    )
-    .orderBy(asc(doubts.createdAt))
-    .limit(8);
-
-  const todayCalendarRows = await db
-    .select({
-      id: sessions.id,
-      title: sessions.title,
-      type: sessions.type,
-      scheduledAt: sessions.scheduledAt,
-    })
-    .from(sessions)
-    .where(
-      and(
-        eq(sessions.hostId, user.id),
-        gte(sessions.scheduledAt, dayStart),
-        lt(sessions.scheduledAt, dayEnd),
-      ),
-    )
-    .orderBy(asc(sessions.scheduledAt));
+    db
+      .select({
+        studentId: users.id,
+        fullName: profiles.fullName,
+        email: users.email,
+        lastLoginAt: users.lastLoginAt,
+        joinedAt: assignments.startedAt,
+      })
+      .from(assignments)
+      .innerJoin(users, eq(users.id, assignments.studentId))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active")))
+      .orderBy(sql`${users.lastLoginAt} ASC NULLS LAST`, desc(assignments.startedAt))
+      .limit(5),
+    db
+      .select({
+        id: doubts.id,
+        subject: doubts.subject,
+        topic: doubts.topic,
+        body: doubts.body,
+        createdAt: doubts.createdAt,
+        status: doubts.status,
+        studentId: users.id,
+        studentName: profiles.fullName,
+        studentEmail: users.email,
+      })
+      .from(doubts)
+      .innerJoin(users, eq(users.id, doubts.studentId))
+      .leftJoin(profiles, eq(profiles.userId, doubts.studentId))
+      .where(
+        or(
+          eq(doubts.status, "open"),
+          and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+        ),
+      )
+      .orderBy(asc(doubts.createdAt))
+      .limit(8),
+    db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        type: sessions.type,
+        scheduledAt: sessions.scheduledAt,
+      })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.hostId, user.id),
+          gte(sessions.scheduledAt, dayStart),
+          lt(sessions.scheduledAt, dayEnd),
+        ),
+      )
+      .orderBy(asc(sessions.scheduledAt)),
+  ]);
 
   const summary = {
-    students: Number(studentsCountRow?.c ?? 0),
-    sessionsToday: Number(sessionsTodayRow?.c ?? 0),
-    doubtsPending: Number(doubtsPendingRow?.c ?? 0),
+    students: Number(studentsCountRows[0]?.c ?? 0),
+    sessionsToday: Number(sessionsTodayRows[0]?.c ?? 0),
+    doubtsPending: Number(doubtsPendingRows[0]?.c ?? 0),
     earningsThisMonth: 0,
     status: "Available" as const,
   };
