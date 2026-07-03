@@ -14,6 +14,7 @@ export function MentorReviewActions({ id, source }: Props) {
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   const submit = useCallback(async (action: "approve" | "reject") => {
     if (action === "reject" && !reason.trim()) return;
@@ -32,12 +33,18 @@ export function MentorReviewActions({ id, source }: Props) {
         setLoading(null);
         return;
       }
+      setLoading(null);
+      setDone(true);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
       setLoading(null);
     }
   }, [id, source, reason, router]);
+
+  if (done) {
+    return <span className="text-xs text-primary-deep font-medium">Done ✓</span>;
+  }
 
   if (error) {
     return (
