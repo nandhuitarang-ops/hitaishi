@@ -1,7 +1,6 @@
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { formatLastSeen } from "@/lib/format";
-import { RealtimeRefresher } from "@/components/admin/RealtimeRefresher";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
 import {
@@ -136,7 +135,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <Shell role="admin" active="dashboard" pageCode="A.02 — MASTER DASHBOARD" pageTitle="Control room" pageSubtitle="System health, alerts, and recent admin activity at a glance.">
-      <RealtimeRefresher />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {kpis.map((k) => (
           <Card key={k.label} className="p-5">
