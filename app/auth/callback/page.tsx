@@ -25,6 +25,7 @@ export default function AuthCallbackPage() {
         const res = await fetch("/api/onboarding/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include", // ensure cookies are sent/received
           body: JSON.stringify({
             email: user.email,
             fullName: user.user_metadata?.full_name || user.email?.split("@")[0],
@@ -34,7 +35,9 @@ export default function AuthCallbackPage() {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Session creation failed.");
+        if (!res.ok) {
+          throw new Error(data.error || "Session creation failed.");
+        }
 
         setStatus("Signed in successfully! Closing window...");
 
