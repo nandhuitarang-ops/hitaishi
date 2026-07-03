@@ -9,42 +9,20 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function handleCallback() {
       try {
-        // Use the singleton auth client (shares localStorage for PKCE code verifier)
         const client = getAuthClient();
 
-        // Supabase v2 uses PKCE by default: the URL contains ?code=...
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code");
-        const errorDesc = url.searchParams.get("error_description");
+        // Supabase auth client with detectSessionInUrl:true automatically
+        // exchanges the PKCE code or reads the access_token from the URL
+        const { data: { session }, error } = await client.auth.getSession();
 
-        if (errorDesc) {
-          throw new Error(`OAuth error: ${errorDesc}`);
-        }
-
-        if (code) {
-          setStatus("Exchanging auth code for session...");
-          const { error: exchangeError } = await client.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-            throw new Error(`Code exchange failed: ${exchangeError.message}`);
-          }
-        }
-
-        // Now get the established session (works for both PKCE and implicit grant)
-        setStatus("Retrieving session...");
-        const { data: { session }, error: sessionError } = await client.auth.getSession();
-
-        if (sessionError) throw sessionError;
+        if (error) throw error;
         if (!session) {
-          throw new Error(
-            "No active Supabase session found. " +
-            "The auth code may have expired, been used already, or the OAuth flow was interrupted."
-          );
+          throw new Error("No active Supabase session found.");
         }
 
         const user = session.user;
-        setStatus("Creating local session...");
+        setStatus("Creating your session...");
 
-        // Create local session cookie
         const res = await fetch("/api/onboarding/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -62,19 +40,15 @@ export default function AuthCallbackPage() {
           throw new Error(data.error || "Session creation failed.");
         }
 
-        const dashboardUrl = `/${data.role}/dashboard`;
-
         if (window.opener) {
-          // Popup mode: notify parent and close
-          setStatus("Signed in successfully! Closing window...");
+          setStatus("Signed in successfully!");
           window.opener.postMessage(
             { type: "GOOGLE_AUTH_SUCCESS", role: data.role },
             window.location.origin
           );
           window.close();
         } else {
-          // Full-tab mode: redirect user
-          window.location.href = dashboardUrl;
+          window.location.href = `/${data.role}/dashboard`;
         }
       } catch (err: any) {
         console.error("OAuth callback error:", err);
@@ -86,11 +60,7 @@ export default function AuthCallbackPage() {
             window.location.origin
           );
         } else {
-          // Full-tab mode: redirect back to login with error
-          const loginUrl = "/login?error=" + encodeURIComponent(err.message);
-          setTimeout(() => {
-            window.location.href = loginUrl;
-          }, 3000);
+          window.location.href = "/login?error=" + encodeURIComponent(err.message);
         }
       }
     }
