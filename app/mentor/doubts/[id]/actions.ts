@@ -30,6 +30,7 @@ export async function claimDoubt(doubtId: string) {
 
   revalidatePath("/mentor/doubts");
   revalidatePath(`/mentor/doubts/${doubtId}`);
+  revalidatePath("/student/doubts");
 }
 
 export async function answerDoubt(doubtId: string, body: string) {
@@ -58,4 +59,5 @@ export async function answerDoubt(doubtId: string, body: string) {
 
   revalidatePath("/mentor/doubts");
   revalidatePath(`/mentor/doubts/${doubtId}`);
+  revalidatePath("/student/doubts");
 }

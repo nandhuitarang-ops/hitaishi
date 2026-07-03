@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, or, sql, SQL } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
 import {
   Card,
@@ -15,12 +16,9 @@ import { db } from "@/lib/db";
 import { doubtAnswers, doubts } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { createDoubt } from "./actions";
+import { DoubtTabs, type TabKey } from "./DoubtTabs";
 
 export const dynamic = "force-dynamic";
-
-const tabs = ["All", "Waiting", "Answered", "Resolved"] as const;
-
-type StatusKey = "waiting" | "answered" | "resolved";
 
 function subjectLabel(s: string): string {
   if (s === "physics") return "Physics";
@@ -29,16 +27,19 @@ function subjectLabel(s: string): string {
   return s;
 }
 
-function statusKeyFromDb(status: string): StatusKey {
-  if (status === "answered") return "answered";
-  if (status === "abandoned") return "resolved";
-  return "waiting";
+function statusTone(s: string): "warn" | "primary" | "neutral" {
+  if (s === "open" || s === "waiting" || s === "pending" || s === "claimed")
+    return "warn";
+  if (s === "answered") return "primary";
+  return "neutral";
 }
 
-function statusToneFor(key: StatusKey): "warn" | "primary" | "neutral" {
-  if (key === "waiting") return "warn";
-  if (key === "answered") return "primary";
-  return "neutral";
+function statusLabel(s: string): string {
+  if (s === "open" || s === "waiting" || s === "pending") return "waiting";
+  if (s === "claimed") return "claimed";
+  if (s === "answered") return "answered";
+  if (s === "abandoned") return "resolved";
+  return s;
 }
 
 function elapsedFrom(d: Date, now: Date = new Date()): string {
@@ -53,10 +54,33 @@ function elapsedFrom(d: Date, now: Date = new Date()): string {
   return `${days}d`;
 }
 
-export default async function StudentDoubtsPage() {
+function statusFilterCondition(tab: TabKey): SQL | undefined {
+  if (tab === "waiting") {
+    return or(
+      eq(doubts.status, "open"),
+      eq(doubts.status, "waiting"),
+      eq(doubts.status, "pending"),
+      eq(doubts.status, "claimed"),
+    );
+  }
+  if (tab === "answered") return eq(doubts.status, "answered");
+  if (tab === "resolved") return eq(doubts.status, "abandoned");
+  return undefined; // "all" — no filter
+}
+
+export default async function StudentDoubtsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.role !== "student") redirect(`/${user.role}/dashboard`);
+
+  const { tab: rawTab } = await searchParams;
+  const tab = (rawTab as TabKey) || "all";
+
+  const where = statusFilterCondition(tab);
 
   const doubtRows = await db
     .select({
@@ -70,8 +94,60 @@ export default async function StudentDoubtsPage() {
     })
     .from(doubts)
     .leftJoin(doubtAnswers, eq(doubtAnswers.doubtId, doubts.id))
-    .where(eq(doubts.studentId, user.id))
+    .where(
+      where
+        ? and(eq(doubts.studentId, user.id), where)
+        : eq(doubts.studentId, user.id),
+    )
     .orderBy(desc(doubts.createdAt));
+
+  // Count each category for tab badges
+  const [allCount, waitingCount, answeredCount, resolvedCount] =
+    await Promise.all([
+      db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(doubts)
+        .where(eq(doubts.studentId, user.id)),
+      db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(doubts)
+        .where(
+          and(
+            eq(doubts.studentId, user.id),
+            or(
+              eq(doubts.status, "open"),
+              eq(doubts.status, "waiting"),
+              eq(doubts.status, "pending"),
+              eq(doubts.status, "claimed"),
+            ),
+          ),
+        ),
+      db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(doubts)
+        .where(
+          and(
+            eq(doubts.studentId, user.id),
+            eq(doubts.status, "answered"),
+          ),
+        ),
+      db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(doubts)
+        .where(
+          and(
+            eq(doubts.studentId, user.id),
+            eq(doubts.status, "abandoned"),
+          ),
+        ),
+    ]);
+
+  const counts: Record<TabKey, number> = {
+    all: Number(allCount[0]?.c ?? 0),
+    waiting: Number(waitingCount[0]?.c ?? 0),
+    answered: Number(answeredCount[0]?.c ?? 0),
+    resolved: Number(resolvedCount[0]?.c ?? 0),
+  };
 
   return (
     <Shell
@@ -132,33 +208,28 @@ export default async function StudentDoubtsPage() {
         </CardBody>
       </Card>
 
-      <div className="flex flex-wrap gap-2 mb-5">
-        {tabs.map((t, i) => (
-          <button
-            key={t}
-            className={`px-4 py-2 rounded-pill text-sm font-medium ${
-              i === 0
-                ? "bg-primary text-primary-on"
-                : "bg-surface-card border border-rule text-ink-soft hover:bg-surface-elevated"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <Suspense fallback={<div className="flex gap-2 mb-5">{["All","Waiting","Answered","Resolved"].map(t => <div key={t} className="h-10 w-24 rounded-pill bg-surface-elevated" />)}</div>}>
+        <DoubtTabs counts={counts} />
+      </Suspense>
 
       {doubtRows.length === 0 ? (
         <Card>
           <CardBody>
             <p className="text-sm text-ink-soft text-center py-6">
-              No doubts yet.
+              {tab === "all"
+                ? "No doubts yet."
+                : tab === "waiting"
+                  ? "No doubts waiting."
+                  : tab === "answered"
+                    ? "No answered doubts yet."
+                    : "No resolved doubts."}
             </p>
           </CardBody>
         </Card>
       ) : (
         <div className="grid gap-3">
           {doubtRows.map((d: any) => {
-            const statusKey = statusKeyFromDb(d.status);
+            const label = statusLabel(d.status);
             const title = d.topic?.trim() || d.body.slice(0, 140);
             return (
               <Card key={d.id}>
@@ -166,8 +237,8 @@ export default async function StudentDoubtsPage() {
                   <div className="flex-1 min-w-[260px]">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Pill tone="primary">{subjectLabel(d.subject)}</Pill>
-                      <Pill tone={statusToneFor(statusKey)}>
-                        {statusKey} · {elapsedFrom(d.createdAt)}
+                      <Pill tone={statusTone(d.status)}>
+                        {label} · {elapsedFrom(d.createdAt)}
                       </Pill>
                       {d.studentRating != null && (
                         <Pill tone="primary">
@@ -184,7 +255,7 @@ export default async function StudentDoubtsPage() {
                     variant="ghost"
                     size="sm"
                   >
-                    {statusKey === "waiting" ? "Edit doubt →" : "View thread →"}
+                    {label === "waiting" ? "Edit doubt →" : "View thread →"}
                   </LinkButton>
                 </CardBody>
               </Card>
