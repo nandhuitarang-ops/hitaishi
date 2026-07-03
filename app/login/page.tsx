@@ -32,7 +32,12 @@ const ROLE_CONFIG: Record<string, { title: string; subtitle: string; accent: str
 };
 
 export default async function LoginPage({ searchParams }: PageProps) {
-  const me = await getCurrentUser();
+  let me = null;
+  try {
+    me = await getCurrentUser();
+  } catch {
+    // ignore — let the login form render
+  }
   if (me) redirect(`/${me.role}/dashboard`);
 
   const resolved = await searchParams;

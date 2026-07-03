@@ -83,7 +83,12 @@ export async function Shell({
   children,
 }: ShellProps) {
   const items = NAV[role];
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    // ignore — render shell without user info
+  }
 
   return (
     <main className="min-h-screen bg-surface text-ink">

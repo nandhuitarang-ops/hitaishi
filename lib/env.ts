@@ -21,19 +21,21 @@ const baseSchema = z.object({
 });
 
 const productionExtras = z.object({
-  RAZORPAY_KEY_ID: z.string().min(1),
-  RAZORPAY_KEY_SECRET: z.string().min(1),
-  RAZORPAY_WEBHOOK_SECRET: z.string().min(1),
-  R2_ACCOUNT_ID: z.string().min(1),
-  R2_ACCESS_KEY_ID: z.string().min(1),
-  R2_SECRET_ACCESS_KEY: z.string().min(1),
-  R2_BUCKET: z.string().min(1),
-  REDIS_URL: z.string().min(1),
-  SOKETI_HOST: z.string().min(1),
-  SOKETI_KEY: z.string().min(1),
-  SOKETI_SECRET: z.string().min(1),
-  RESEND_API_KEY: z.string().min(1),
-  RESEND_FROM: z.string().email(),
+  // Core payment & storage — required in production
+  RAZORPAY_KEY_ID: z.string().min(1).optional(),
+  RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+  R2_ACCOUNT_ID: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET: z.string().min(1).optional(),
+  REDIS_URL: z.string().min(1).optional(),
+  // Realtime / notifications — optional
+  SOKETI_HOST: z.string().min(1).optional(),
+  SOKETI_KEY: z.string().min(1).optional(),
+  SOKETI_SECRET: z.string().min(1).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM: z.string().email().optional(),
 });
 
 export type ValidateResult =

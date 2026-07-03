@@ -47,41 +47,52 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const rows = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      role: users.role,
-      status: users.status,
-      deletedAt: users.deletedAt,
-      fullName: profiles.fullName,
-    })
-    .from(authSessions)
-    .innerJoin(users, eq(users.id, authSessions.userId))
-    .leftJoin(profiles, eq(profiles.userId, users.id))
-    .where(
-      and(
-        eq(authSessions.sessionToken, token),
-        gt(authSessions.expiresAt, new Date()),
-        isNull(users.deletedAt),
-      ),
-    )
-    .limit(1);
+  try {
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        status: users.status,
+        deletedAt: users.deletedAt,
+        fullName: profiles.fullName,
+      })
+      .from(authSessions)
+      .innerJoin(users, eq(users.id, authSessions.userId))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(
+        and(
+          eq(authSessions.sessionToken, token),
+          gt(authSessions.expiresAt, new Date()),
+          isNull(users.deletedAt),
+        ),
+      )
+      .limit(1);
 
-  const row = rows[0];
-  if (!row) return null;
-  if (row.status !== "active") return null;
+    const row = rows[0];
+    if (!row) return null;
+    if (row.status !== "active") return null;
 
-  return {
-    id: row.id,
-    email: row.email,
-    role: row.role as Role,
-    fullName: row.fullName ?? row.email.split("@")[0],
-  };
+    return {
+      id: row.id,
+      email: row.email,
+      role: row.role as Role,
+      fullName: row.fullName ?? row.email.split("@")[0],
+    };
+  } catch {
+    // DB unavailable — treat as unauthenticated rather than crashing the page
+    return null;
+  }
 }
 
 export async function requireRole(expected: Role): Promise<CurrentUser> {
-  const user = await getCurrentUser();
+  let user: CurrentUser | null = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    // DB unavailable — redirect to login instead of 500
+    redirect("/login");
+  }
   if (!user) redirect("/login");
   if (user.role !== expected) redirect(`/${user.role}/dashboard`);
   return user;

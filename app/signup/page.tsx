@@ -4,7 +4,12 @@ import { getCurrentUser } from "@/lib/session";
 import { SignupForm } from "./SignupForm";
 
 export default async function SignupPage() {
-  const me = await getCurrentUser();
+  let me = null;
+  try {
+    me = await getCurrentUser();
+  } catch {
+    // ignore — let the signup form render
+  }
   if (me) redirect(`/${me.role}/dashboard`);
 
   return (
