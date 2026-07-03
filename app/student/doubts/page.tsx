@@ -1,6 +1,5 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { and, desc, eq, or, sql, SQL } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
 import {
   Card,
@@ -16,7 +15,6 @@ import { db } from "@/lib/db";
 import { doubtAnswers, doubts } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { createDoubt } from "./actions";
-import { DoubtTabs, type TabKey } from "./DoubtTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +40,10 @@ function statusLabel(s: string): string {
   return s;
 }
 
+function isWaiting(s: string): boolean {
+  return s === "open" || s === "waiting" || s === "pending" || s === "claimed";
+}
+
 function elapsedFrom(d: Date, now: Date = new Date()): string {
   const diff = now.getTime() - d.getTime();
   const min = Math.floor(diff / 60000);
@@ -54,20 +56,6 @@ function elapsedFrom(d: Date, now: Date = new Date()): string {
   return `${days}d`;
 }
 
-function statusFilterCondition(tab: TabKey): SQL | undefined {
-  if (tab === "waiting") {
-    return or(
-      eq(doubts.status, "open"),
-      eq(doubts.status, "waiting"),
-      eq(doubts.status, "pending"),
-      eq(doubts.status, "claimed"),
-    );
-  }
-  if (tab === "answered") return eq(doubts.status, "answered");
-  if (tab === "resolved") return eq(doubts.status, "abandoned");
-  return undefined; // "all" — no filter
-}
-
 export default async function StudentDoubtsPage({
   searchParams,
 }: {
@@ -78,9 +66,7 @@ export default async function StudentDoubtsPage({
   if (user.role !== "student") redirect(`/${user.role}/dashboard`);
 
   const { tab: rawTab } = await searchParams;
-  const tab = (rawTab as TabKey) || "all";
-
-  const where = statusFilterCondition(tab);
+  const activeTab = rawTab === "waiting" || rawTab === "answered" || rawTab === "resolved" ? rawTab : "all";
 
   const doubtRows = await db
     .select({
@@ -94,60 +80,38 @@ export default async function StudentDoubtsPage({
     })
     .from(doubts)
     .leftJoin(doubtAnswers, eq(doubtAnswers.doubtId, doubts.id))
-    .where(
-      where
-        ? and(eq(doubts.studentId, user.id), where)
-        : eq(doubts.studentId, user.id),
-    )
+    .where(eq(doubts.studentId, user.id))
     .orderBy(desc(doubts.createdAt));
 
-  // Count each category for tab badges
-  const [allCount, waitingCount, answeredCount, resolvedCount] =
-    await Promise.all([
-      db
-        .select({ c: sql<number>`count(*)::int` })
-        .from(doubts)
-        .where(eq(doubts.studentId, user.id)),
-      db
-        .select({ c: sql<number>`count(*)::int` })
-        .from(doubts)
-        .where(
-          and(
-            eq(doubts.studentId, user.id),
-            or(
-              eq(doubts.status, "open"),
-              eq(doubts.status, "waiting"),
-              eq(doubts.status, "pending"),
-              eq(doubts.status, "claimed"),
-            ),
-          ),
-        ),
-      db
-        .select({ c: sql<number>`count(*)::int` })
-        .from(doubts)
-        .where(
-          and(
-            eq(doubts.studentId, user.id),
-            eq(doubts.status, "answered"),
-          ),
-        ),
-      db
-        .select({ c: sql<number>`count(*)::int` })
-        .from(doubts)
-        .where(
-          and(
-            eq(doubts.studentId, user.id),
-            eq(doubts.status, "abandoned"),
-          ),
-        ),
-    ]);
+  // Compute counts in JS instead of extra DB queries
+  let waitingCount = 0;
+  let answeredCount = 0;
+  let resolvedCount = 0;
+  for (const d of doubtRows) {
+    if (isWaiting(d.status)) waitingCount++;
+    else if (d.status === "answered") answeredCount++;
+    else if (d.status === "abandoned") resolvedCount++;
+  }
+  const allCount = doubtRows.length;
 
-  const counts: Record<TabKey, number> = {
-    all: Number(allCount[0]?.c ?? 0),
-    waiting: Number(waitingCount[0]?.c ?? 0),
-    answered: Number(answeredCount[0]?.c ?? 0),
-    resolved: Number(resolvedCount[0]?.c ?? 0),
-  };
+  const counts = { all: allCount, waiting: waitingCount, answered: answeredCount, resolved: resolvedCount };
+
+  // Filter client-side based on tab
+  const filteredRows =
+    activeTab === "all"
+      ? doubtRows
+      : activeTab === "waiting"
+        ? doubtRows.filter((d: typeof doubtRows[number]) => isWaiting(d.status))
+        : activeTab === "answered"
+          ? doubtRows.filter((d: typeof doubtRows[number]) => d.status === "answered")
+          : doubtRows.filter((d: typeof doubtRows[number]) => d.status === "abandoned");
+
+  const TABS = [
+    { key: "all" as const, label: "All" },
+    { key: "waiting" as const, label: "Waiting" },
+    { key: "answered" as const, label: "Answered" },
+    { key: "resolved" as const, label: "Resolved" },
+  ];
 
   return (
     <Shell
@@ -208,19 +172,32 @@ export default async function StudentDoubtsPage({
         </CardBody>
       </Card>
 
-      <Suspense fallback={<div className="flex gap-2 mb-5">{["All","Waiting","Answered","Resolved"].map(t => <div key={t} className="h-10 w-24 rounded-pill bg-surface-elevated" />)}</div>}>
-        <DoubtTabs counts={counts} />
-      </Suspense>
+      <div className="flex flex-wrap gap-2 mb-5">
+        {TABS.map((t) => (
+          <a
+            key={t.key}
+            href={t.key === "all" ? "/student/doubts" : `/student/doubts?tab=${t.key}`}
+            className={`px-4 py-2 rounded-pill text-sm font-medium transition-colors ${
+              activeTab === t.key
+                ? "bg-primary text-primary-on"
+                : "bg-surface-card border border-rule text-ink-soft hover:bg-surface-elevated"
+            }`}
+          >
+            {t.label}
+            <span className="ml-1.5 font-mono text-xs opacity-70">{counts[t.key]}</span>
+          </a>
+        ))}
+      </div>
 
-      {doubtRows.length === 0 ? (
+      {filteredRows.length === 0 ? (
         <Card>
           <CardBody>
             <p className="text-sm text-ink-soft text-center py-6">
-              {tab === "all"
+              {activeTab === "all"
                 ? "No doubts yet."
-                : tab === "waiting"
+                : activeTab === "waiting"
                   ? "No doubts waiting."
-                  : tab === "answered"
+                  : activeTab === "answered"
                     ? "No answered doubts yet."
                     : "No resolved doubts."}
             </p>
@@ -228,7 +205,7 @@ export default async function StudentDoubtsPage({
         </Card>
       ) : (
         <div className="grid gap-3">
-          {doubtRows.map((d: any) => {
+          {filteredRows.map((d: any) => {
             const label = statusLabel(d.status);
             const title = d.topic?.trim() || d.body.slice(0, 140);
             return (
