@@ -10,17 +10,17 @@ export default function AuthCallbackPage() {
     async function handleCallback() {
       try {
         const client = getAuthClient();
-        
+
         // Let Supabase process the hashes/params from URL to establish a session
         const { data: { session }, error } = await client.auth.getSession();
-        
+
         if (error) throw error;
         if (!session) {
           throw new Error("No active Supabase session found.");
         }
 
         const user = session.user;
-        
+
         // Post the authenticated user details to our local session API
         const res = await fetch("/api/onboarding/google", {
           method: "POST",
@@ -51,7 +51,7 @@ export default function AuthCallbackPage() {
             window.location.origin
           );
         }
-        
+
         // Close popup
         window.close();
       } catch (err: any) {

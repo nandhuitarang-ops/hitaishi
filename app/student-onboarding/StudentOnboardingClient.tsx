@@ -119,6 +119,20 @@ export function StudentOnboardingClient({ currentUser }: Props) {
     return () => window.removeEventListener("message", handleMessage);
   }, [goForward]);
 
+  // Detect when the popup hangs (e.g. Supabase redirected to localhost instead of production)
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setLoading(false);
+      setError(
+        "Google sign-in timed out. If the popup redirected to localhost, your Supabase Redirect URL is not configured for this domain. " +
+        "Go to Supabase Dashboard → Authentication → URL Configuration and add: " +
+        window.location.origin + "/auth/callback"
+      );
+    }, 120000); // 2 minutes
+    return () => clearTimeout(timer);
+  }, [loading]);
+
   const toggleChallenge = (key: string) => {
     setSelectedChallenges((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
