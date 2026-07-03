@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { profiles, resourceShares, resources, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const tabs = ["All", "Physics", "Chemistry", "Math", "Mock Tests"];
 

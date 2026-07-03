@@ -5,7 +5,7 @@ import { resources } from "@/db/schema";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const SCOPES = [
   { value: "private", label: "Private — only me" },
@@ -33,31 +33,30 @@ function formatDate(d: Date): string {
 export default async function MentorResourcesPage() {
   const user = await requireRole("mentor");
 
-  const [allRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(resources)
-    .where(eq(resources.uploaderId, user.id));
-
-  const [privateRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(resources)
-    .where(and(eq(resources.uploaderId, user.id), eq(resources.scope, "private")));
-
-  const [sharedRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(resources)
-    .where(and(eq(resources.uploaderId, user.id), ne(resources.scope, "private")));
-
-  const [pendingRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(resources)
-    .where(
-      and(
-        eq(resources.uploaderId, user.id),
-        eq(resources.scope, "platform"),
-        eq(resources.platformApproved, false),
+  const [allRow, privateRow, sharedRow, pendingRow] = await Promise.all([
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(resources)
+      .where(eq(resources.uploaderId, user.id)),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(resources)
+      .where(and(eq(resources.uploaderId, user.id), eq(resources.scope, "private"))),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(resources)
+      .where(and(eq(resources.uploaderId, user.id), ne(resources.scope, "private"))),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(resources)
+      .where(
+        and(
+          eq(resources.uploaderId, user.id),
+          eq(resources.scope, "platform"),
+          eq(resources.platformApproved, false),
+        ),
       ),
-    );
+  ]);
 
   const tabs = [
     { key: "all", label: "All", count: Number(allRow?.c ?? 0) },

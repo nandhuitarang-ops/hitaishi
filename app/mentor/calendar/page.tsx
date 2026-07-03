@@ -5,7 +5,7 @@ import { mentorAvailability, sessions } from "@/db/schema";
 import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hours = [
@@ -83,30 +83,31 @@ export default async function MentorCalendarPage() {
   const weekStart = startOfWeek(now);
   const weekEnd = endOfWeek(now);
 
-  const availabilityRows = await db
-    .select({
-      dayOfWeek: mentorAvailability.dayOfWeek,
-      startTime: mentorAvailability.startTime,
-      endTime: mentorAvailability.endTime,
-    })
-    .from(mentorAvailability)
-    .where(eq(mentorAvailability.mentorId, user.id));
-
-  const weekSessions = await db
-    .select({
-      id: sessions.id,
-      scheduledAt: sessions.scheduledAt,
-      durationMinutes: sessions.durationMinutes,
-      status: sessions.status,
-    })
-    .from(sessions)
-    .where(
-      and(
-        eq(sessions.hostId, user.id),
-        gte(sessions.scheduledAt, weekStart),
-        lt(sessions.scheduledAt, weekEnd),
+  const [availabilityRows, weekSessions] = await Promise.all([
+    db
+      .select({
+        dayOfWeek: mentorAvailability.dayOfWeek,
+        startTime: mentorAvailability.startTime,
+        endTime: mentorAvailability.endTime,
+      })
+      .from(mentorAvailability)
+      .where(eq(mentorAvailability.mentorId, user.id)),
+    db
+      .select({
+        id: sessions.id,
+        scheduledAt: sessions.scheduledAt,
+        durationMinutes: sessions.durationMinutes,
+        status: sessions.status,
+      })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.hostId, user.id),
+          gte(sessions.scheduledAt, weekStart),
+          lt(sessions.scheduledAt, weekEnd),
+        ),
       ),
-    );
+  ]);
 
   const cellHasBooked = new Set<string>();
   const bookedByDayHour: Record<string, number> = {};

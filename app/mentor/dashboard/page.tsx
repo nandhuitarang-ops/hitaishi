@@ -55,10 +55,15 @@ export default async function MentorDashboard() {
     db
       .select({ c: sql<number>`count(*)::int` })
       .from(doubts)
+      .innerJoin(assignments, eq(assignments.studentId, doubts.studentId))
       .where(
-        or(
-          eq(doubts.status, "open"),
-          and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+        and(
+          eq(assignments.mentorId, user.id),
+          eq(assignments.status, "active"),
+          or(
+            eq(doubts.status, "open"),
+            and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+          ),
         ),
       ),
     db
@@ -88,12 +93,17 @@ export default async function MentorDashboard() {
         studentEmail: users.email,
       })
       .from(doubts)
+      .innerJoin(assignments, eq(assignments.studentId, doubts.studentId))
       .innerJoin(users, eq(users.id, doubts.studentId))
       .leftJoin(profiles, eq(profiles.userId, doubts.studentId))
       .where(
-        or(
-          eq(doubts.status, "open"),
-          and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+        and(
+          eq(assignments.mentorId, user.id),
+          eq(assignments.status, "active"),
+          or(
+            eq(doubts.status, "open"),
+            and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)),
+          ),
         ),
       )
       .orderBy(asc(doubts.createdAt))

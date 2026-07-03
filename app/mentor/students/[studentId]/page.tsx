@@ -18,7 +18,7 @@ import {
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

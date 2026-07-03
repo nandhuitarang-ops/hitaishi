@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/session";
 import { auditLog, users, profiles } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
@@ -40,24 +40,25 @@ function severityFromAction(action: string): { tone: Tone; label: string } {
 export default async function AdminAuditPage() {
   await requireRole("admin");
 
-  const [totalRow] = await db.select({ c: count() }).from(auditLog);
-
-  const entries = await db
-    .select({
-      id: auditLog.id,
-      createdAt: auditLog.createdAt,
-      action: auditLog.action,
-      targetType: auditLog.targetType,
-      targetId: auditLog.targetId,
-      ipAddress: auditLog.ipAddress,
-      actorName: profiles.fullName,
-      actorEmail: users.email,
-    })
-    .from(auditLog)
-    .leftJoin(users, eq(users.id, auditLog.actorId))
-    .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
-    .orderBy(desc(auditLog.createdAt))
-    .limit(AUDIT_LIMIT);
+  const [[totalRow], entries] = await Promise.all([
+    db.select({ c: count() }).from(auditLog),
+    db
+      .select({
+        id: auditLog.id,
+        createdAt: auditLog.createdAt,
+        action: auditLog.action,
+        targetType: auditLog.targetType,
+        targetId: auditLog.targetId,
+        ipAddress: auditLog.ipAddress,
+        actorName: profiles.fullName,
+        actorEmail: users.email,
+      })
+      .from(auditLog)
+      .leftJoin(users, eq(users.id, auditLog.actorId))
+      .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(AUDIT_LIMIT),
+  ]);
 
   const totalEntries = Number(totalRow?.c ?? 0);
 

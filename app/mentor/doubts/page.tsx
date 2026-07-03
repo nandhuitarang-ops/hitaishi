@@ -2,11 +2,11 @@ import { Shell } from "@/components/Shell";
 import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
 import { db } from "@/lib/db";
-import { doubtAnswers, doubts, profiles, users } from "@/db/schema";
+import { assignments, doubtAnswers, doubts, profiles, users } from "@/db/schema";
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -38,75 +38,89 @@ export default async function MentorDoubtsPage() {
   const dayStart = startOfDay(now);
   const dayEnd = endOfDay(now);
 
-  const [waitingRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(doubts)
-    .where(eq(doubts.status, "open"));
-
-  const [claimedRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(doubts)
-    .where(and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id)));
-
-  const [answeredRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(doubtAnswers)
-    .innerJoin(doubts, eq(doubts.id, doubtAnswers.doubtId))
-    .where(
-      and(
-        eq(doubtAnswers.answererId, user.id),
-        gte(doubtAnswers.createdAt, dayStart),
-        sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+  const [waitingRow, claimedRow, answeredRow] = await Promise.all([
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(doubts)
+      .innerJoin(assignments, eq(assignments.studentId, doubts.studentId))
+      .where(
+        and(
+          eq(doubts.status, "open"),
+          eq(assignments.mentorId, user.id),
+          eq(assignments.status, "active"),
+        ),
       ),
-    );
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(doubts)
+      .where(and(eq(doubts.status, "claimed"), eq(doubts.claimedBy, user.id))),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(doubtAnswers)
+      .innerJoin(doubts, eq(doubts.id, doubtAnswers.doubtId))
+      .where(
+        and(
+          eq(doubtAnswers.answererId, user.id),
+          gte(doubtAnswers.createdAt, dayStart),
+          sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+        ),
+      ),
+  ]);
 
   const tabs = [
-    { key: "waiting", label: "Waiting", count: Number(waitingRow?.c ?? 0) },
+    { key: "pending", label: "Pending", count: Number(waitingRow?.c ?? 0) },
     { key: "claimed", label: "Mine — in progress", count: Number(claimedRow?.c ?? 0) },
     { key: "answered", label: "Answered today", count: Number(answeredRow?.c ?? 0) },
   ];
 
-  const waitingDoubts = await db
-    .select({
-      id: doubts.id,
-      subject: doubts.subject,
-      body: doubts.body,
-      topic: doubts.topic,
-      createdAt: doubts.createdAt,
-      studentName: profiles.fullName,
-      studentEmail: users.email,
-    })
-    .from(doubts)
-    .innerJoin(users, eq(users.id, doubts.studentId))
-    .leftJoin(profiles, eq(profiles.userId, doubts.studentId))
-    .where(eq(doubts.status, "open"))
-    .orderBy(asc(doubts.createdAt))
-    .limit(50);
-
-  const [resolvedTodayRow] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(doubtAnswers)
-    .where(
-      and(
-        eq(doubtAnswers.answererId, user.id),
-        gte(doubtAnswers.createdAt, dayStart),
-        sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+  const [waitingDoubts, resolvedTodayRow, earnedTodayRow] = await Promise.all([
+    db
+      .select({
+        id: doubts.id,
+        subject: doubts.subject,
+        body: doubts.body,
+        topic: doubts.topic,
+        createdAt: doubts.createdAt,
+        studentName: profiles.fullName,
+        studentEmail: users.email,
+      })
+      .from(doubts)
+      .innerJoin(assignments, eq(assignments.studentId, doubts.studentId))
+      .innerJoin(users, eq(users.id, doubts.studentId))
+      .leftJoin(profiles, eq(profiles.userId, doubts.studentId))
+      .where(
+        and(
+          eq(doubts.status, "open"),
+          eq(assignments.mentorId, user.id),
+          eq(assignments.status, "active"),
+        ),
+      )
+      .orderBy(asc(doubts.createdAt))
+      .limit(50),
+    db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(doubtAnswers)
+      .where(
+        and(
+          eq(doubtAnswers.answererId, user.id),
+          gte(doubtAnswers.createdAt, dayStart),
+          sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+        ),
       ),
-    );
-
-  const [earnedTodayRow] = await db
-    .select({
-      sum: sql<number>`0::int`,
-    })
-    .from(doubtAnswers)
-    .innerJoin(doubts, eq(doubts.id, doubtAnswers.doubtId))
-    .where(
-      and(
-        eq(doubtAnswers.answererId, user.id),
-        gte(doubtAnswers.createdAt, dayStart),
-        sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+    db
+      .select({
+        sum: sql<number>`0::int`,
+      })
+      .from(doubtAnswers)
+      .innerJoin(doubts, eq(doubts.id, doubtAnswers.doubtId))
+      .where(
+        and(
+          eq(doubtAnswers.answererId, user.id),
+          gte(doubtAnswers.createdAt, dayStart),
+          sql`${doubtAnswers.createdAt} < ${dayEnd.toISOString()}`,
+        ),
       ),
-    );
+  ]);
 
   const formattedDoubts = waitingDoubts.map((d: any) => {
     const name = d.studentName ?? d.studentEmail.split("@")[0];

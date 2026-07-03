@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/session";
 import { users, profiles, assignments, mentorRequests } from "@/db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function AdminStudentProfilePage({
   params,
@@ -33,31 +33,31 @@ export default async function AdminStudentProfilePage({
   const profile = studentRow.profiles;
   const name = profile?.fullName ?? student.email.split("@")[0];
 
-  // Fetch current active mentor
-  const [mentorRow] = await db
-    .select({
-      mentorId: assignments.mentorId,
-      mentorName: profiles.fullName,
-      mentorEmail: users.email,
-      mentorInstitute: profiles.institute,
-      mentorSubjects: profiles.subjectsFocus,
-      mentorBio: profiles.bio,
-      startedAt: assignments.startedAt,
-    })
-    .from(assignments)
-    .innerJoin(users, eq(users.id, assignments.mentorId))
-    .leftJoin(profiles, eq(profiles.userId, assignments.mentorId))
-    .where(and(eq(assignments.studentId, studentId), eq(assignments.status, "active")))
-    .orderBy(desc(assignments.startedAt))
-    .limit(1);
-
-  // Fetch pending mentor request
-  const [requestRow] = await db
-    .select()
-    .from(mentorRequests)
-    .where(and(eq(mentorRequests.studentId, studentId), eq(mentorRequests.status, "pending")))
-    .limit(1)
-    .catch(() => [] as any[]);
+  // Fetch current active mentor and pending mentor request in parallel
+  const [mentorRow, requestRow] = await Promise.all([
+    db
+      .select({
+        mentorId: assignments.mentorId,
+        mentorName: profiles.fullName,
+        mentorEmail: users.email,
+        mentorInstitute: profiles.institute,
+        mentorSubjects: profiles.subjectsFocus,
+        mentorBio: profiles.bio,
+        startedAt: assignments.startedAt,
+      })
+      .from(assignments)
+      .innerJoin(users, eq(users.id, assignments.mentorId))
+      .leftJoin(profiles, eq(profiles.userId, assignments.mentorId))
+      .where(and(eq(assignments.studentId, studentId), eq(assignments.status, "active")))
+      .orderBy(desc(assignments.startedAt))
+      .limit(1),
+    db
+      .select()
+      .from(mentorRequests)
+      .where(and(eq(mentorRequests.studentId, studentId), eq(mentorRequests.status, "pending")))
+      .limit(1)
+      .catch(() => [] as any[]),
+  ]);
 
   const hasMentor = !!mentorRow;
   const hasPendingRequest = !!requestRow;

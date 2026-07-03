@@ -14,8 +14,9 @@ import {
 import { db } from "@/lib/db";
 import { doubtAnswers, doubts } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { createDoubt } from "./actions";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const tabs = ["All", "Waiting", "Answered", "Resolved"] as const;
 
@@ -83,17 +84,17 @@ export default async function StudentDoubtsPage() {
       <Card className="mb-6">
         <CardHeader meta="ASK A NEW DOUBT" title="Have a doubt? Ask now." />
         <CardBody>
-          <form className="grid md:grid-cols-[1fr_1fr] gap-4">
+          <form action={createDoubt} className="grid md:grid-cols-[1fr_1fr] gap-4">
             <Field label="Subject" required>
-              <Select required>
-                <option>Physics</option>
-                <option>Chemistry</option>
-                <option>Math</option>
-                <option>Other</option>
+              <Select name="subject" required>
+                <option value="physics">Physics</option>
+                <option value="chemistry">Chemistry</option>
+                <option value="maths">Math</option>
+                <option value="other">Other</option>
               </Select>
             </Field>
             <Field label="Topic">
-              <Select>
+              <Select name="topic">
                 <option>General mechanics</option>
                 <option>Thermodynamics</option>
                 <option>Electrostatics</option>
@@ -104,6 +105,7 @@ export default async function StudentDoubtsPage() {
             <div className="md:col-span-2">
               <Field label="Describe your doubt" required>
                 <Textarea
+                  name="body"
                   rows={4}
                   required
                   placeholder="Write your question as clearly as you can. You can attach a photo of your working below."

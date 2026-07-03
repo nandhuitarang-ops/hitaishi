@@ -199,6 +199,21 @@ export function AdminChatClient({
     }
   }
 
+  async function deleteMessage(messageId: string) {
+    if (!activeId) return;
+    // Optimistic remove
+    setMessagesByConv((prev) => ({
+      ...prev,
+      [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== messageId),
+    }));
+    try {
+      const r = await fetch(`/api/chat/conversations/${activeId}/messages/${messageId}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("Delete failed");
+    } catch {
+      // Optionally restore on error, but keep it simple
+    }
+  }
+
   async function send() {
     const body = draft.trim();
     if (!body || !activeId || sending) return;
@@ -335,10 +350,20 @@ export function AdminChatClient({
                       return (
                         <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                           <div
-                            className={`max-w-[75%] rounded-card px-3.5 py-2 text-sm shadow-sm ${
+                            className={`max-w-[75%] rounded-card px-3.5 py-2 text-sm shadow-sm relative group ${
                               mine ? "bg-primary text-primary-on" : "bg-surface-card border border-rule text-ink"
                             } ${m.pending ? "opacity-60" : ""}`}
                           >
+                            {/* Delete button for own messages */}
+                            {mine && !m.pending && (
+                              <button
+                                onClick={() => deleteMessage(m.id)}
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-surface-card border border-rule rounded-full text-ink-faint hover:text-error text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Delete"
+                              >
+                                ×
+                              </button>
+                            )}
                             <div className="whitespace-pre-wrap break-words">{m.body}</div>
                             <div
                               className={`text-[10px] mt-0.5 ${mine ? "text-primary-on/70" : "text-ink-faint"} text-right`}

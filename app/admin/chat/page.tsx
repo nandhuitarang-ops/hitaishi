@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages, profiles, users } from "@/db/schema";
 import { AdminChatClient, type ConvListItem, type InitialMessage } from "./AdminChatClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function AdminChatPage() {
   const user = await getCurrentUser();

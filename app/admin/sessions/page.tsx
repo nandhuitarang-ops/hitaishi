@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { sessions, sessionParticipants, users, profiles, conversations, messages } from "@/db/schema";
 import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function elapsedHms(d: Date | null): string {
   if (!d) return "00:00:00";
@@ -18,48 +18,48 @@ function elapsedHms(d: Date | null): string {
 }
 
 export default async function AdminSessionsPage() {
-  const live = await db
-    .select({
-      id: sessions.id,
-      title: sessions.title,
-      startedAt: sessions.startedAt,
-      hostName: profiles.fullName,
-      hostEmail: users.email,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.hostId))
-    .leftJoin(profiles, eq(profiles.userId, sessions.hostId))
-    .where(eq(sessions.status, "live"))
-    .orderBy(desc(sessions.startedAt))
-    .limit(20);
-
-  const recordings = await db
-    .select({
-      id: sessions.id,
-      title: sessions.title,
-      startedAt: sessions.startedAt,
-      endedAt: sessions.endedAt,
-      durationMinutes: sessions.durationMinutes,
-      hostName: profiles.fullName,
-      hostEmail: users.email,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.hostId))
-    .leftJoin(profiles, eq(profiles.userId, sessions.hostId))
-    .where(eq(sessions.status, "completed"))
-    .orderBy(desc(sessions.endedAt))
-    .limit(20);
-
-  const flaggedConvs = await db
-    .select({
-      id: conversations.id,
-      title: conversations.title,
-      lastMessageAt: conversations.lastMessageAt,
-    })
-    .from(conversations)
-    .where(eq(conversations.flagged, true))
-    .orderBy(desc(conversations.lastMessageAt))
-    .limit(20);
+  const [live, recordings, flaggedConvs] = await Promise.all([
+    db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        startedAt: sessions.startedAt,
+        hostName: profiles.fullName,
+        hostEmail: users.email,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(users.id, sessions.hostId))
+      .leftJoin(profiles, eq(profiles.userId, sessions.hostId))
+      .where(eq(sessions.status, "live"))
+      .orderBy(desc(sessions.startedAt))
+      .limit(20),
+    db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        startedAt: sessions.startedAt,
+        endedAt: sessions.endedAt,
+        durationMinutes: sessions.durationMinutes,
+        hostName: profiles.fullName,
+        hostEmail: users.email,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(users.id, sessions.hostId))
+      .leftJoin(profiles, eq(profiles.userId, sessions.hostId))
+      .where(eq(sessions.status, "completed"))
+      .orderBy(desc(sessions.endedAt))
+      .limit(20),
+    db
+      .select({
+        id: conversations.id,
+        title: conversations.title,
+        lastMessageAt: conversations.lastMessageAt,
+      })
+      .from(conversations)
+      .where(eq(conversations.flagged, true))
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(20),
+  ]);
 
   const sessionIds = [...live.map((s: any) => s.id), ...recordings.map((s: any) => s.id)];
   const participantCounts = new Map<string, number>();

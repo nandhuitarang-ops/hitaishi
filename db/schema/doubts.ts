@@ -20,6 +20,8 @@ export const subjectEnum = pgEnum("subject", [
 ]);
 export const doubtStatusEnum = pgEnum("doubt_status", [
   "open",
+  "waiting",
+  "pending",
   "claimed",
   "answered",
   "abandoned",

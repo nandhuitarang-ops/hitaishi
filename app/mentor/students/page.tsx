@@ -14,7 +14,7 @@ import {
 import { and, desc, eq, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const statusTone = {
   on_track: "primary",
@@ -91,30 +91,31 @@ export default async function MentorStudentsPage() {
   const doubtCounts = new Map<string, number>();
   const sessionCounts = new Map<string, number>();
   if (studentIds.length) {
-    const dRows = await db
-      .select({
-        studentId: doubts.studentId,
-        c: sql<number>`count(*)::int`,
-      })
-      .from(doubts)
-      .where(sql`${doubts.studentId} = ANY(${studentIds})`)
-      .groupBy(doubts.studentId);
+    const [dRows, sRows] = await Promise.all([
+      db
+        .select({
+          studentId: doubts.studentId,
+          c: sql<number>`count(*)::int`,
+        })
+        .from(doubts)
+        .where(sql`${doubts.studentId} = ANY(${studentIds})`)
+        .groupBy(doubts.studentId),
+      db
+        .select({
+          studentId: sessionParticipants.userId,
+          c: sql<number>`count(*)::int`,
+        })
+        .from(sessionParticipants)
+        .innerJoin(sessions, eq(sessions.id, sessionParticipants.sessionId))
+        .where(
+          and(
+            sql`${sessionParticipants.userId} = ANY(${studentIds})`,
+            eq(sessions.status, "completed"),
+          ),
+        )
+        .groupBy(sessionParticipants.userId),
+    ]);
     for (const r of dRows) doubtCounts.set(r.studentId, Number(r.c));
-
-    const sRows = await db
-      .select({
-        studentId: sessionParticipants.userId,
-        c: sql<number>`count(*)::int`,
-      })
-      .from(sessionParticipants)
-      .innerJoin(sessions, eq(sessions.id, sessionParticipants.sessionId))
-      .where(
-        and(
-          sql`${sessionParticipants.userId} = ANY(${studentIds})`,
-          eq(sessions.status, "completed"),
-        ),
-      )
-      .groupBy(sessionParticipants.userId);
     for (const r of sRows) sessionCounts.set(r.studentId, Number(r.c));
   }
 

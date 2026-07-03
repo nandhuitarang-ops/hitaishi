@@ -6,7 +6,7 @@ import { assignments, sessions, sessionParticipants, users, profiles } from "@/d
 import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type SessionRow = {
   id: string;
@@ -104,17 +104,19 @@ export default async function MentorSessionsPage() {
     (r: any) => r.status === "completed" || r.status === "cancelled" || (r.status === "scheduled" && new Date(r.scheduledAt).getTime() < now.getTime() - 60 * 60 * 1000),
   ).slice(0, 50);
 
-  const studentRows = await db
-    .select({
-      id: users.id,
-      fullName: profiles.fullName,
-      email: users.email,
-    })
-    .from(assignments)
-    .innerJoin(users, eq(users.id, assignments.studentId))
-    .leftJoin(profiles, eq(profiles.userId, users.id))
-    .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active")))
-    .orderBy(asc(profiles.fullName));
+  const [studentRows] = await Promise.all([
+    db
+      .select({
+        id: users.id,
+        fullName: profiles.fullName,
+        email: users.email,
+      })
+      .from(assignments)
+      .innerJoin(users, eq(users.id, assignments.studentId))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(and(eq(assignments.mentorId, user.id), eq(assignments.status, "active")))
+      .orderBy(asc(profiles.fullName)),
+  ]);
   const students: StudentOption[] = (studentRows as any[]).map((s) => ({
     id: s.id,
     name: s.fullName ?? s.email.split("@")[0],
