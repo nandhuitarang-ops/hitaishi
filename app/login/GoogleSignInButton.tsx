@@ -33,7 +33,7 @@ export function GoogleSignInButton() {
 
       const { data, error: oauthError } = await client.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo },
+        options: { redirectTo, skipBrowserRedirect: true },
       });
 
       if (oauthError) throw oauthError;
