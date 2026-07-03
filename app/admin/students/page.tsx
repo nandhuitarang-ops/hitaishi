@@ -1,55 +1,19 @@
 import { Shell } from "@/components/Shell";
 import { Card, LinkButton } from "@/components/ui";
 import { initials } from "@/lib/format";
-import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
-import {
-  users,
-  profiles,
-  assignments,
-} from "@/db/schema";
-import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
+import { getStudentsList } from "@/lib/admin-cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const STUDENT_LIMIT = 50;
 
 export default async function AdminStudentsPage() {
   await requireRole("admin");
 
-  const studentBase = and(eq(users.role, "student"), isNull(users.deletedAt));
+  const { rows, total } = await getStudentsList(STUDENT_LIMIT);
 
-  const [[allRow], rows] = await Promise.all([
-    db
-      .select({ c: count() })
-      .from(users)
-      .where(studentBase),
-    db
-      .select({
-        id: users.id,
-        email: users.email,
-        phone: users.phone,
-        fullName: profiles.fullName,
-        lastLoginAt: users.lastLoginAt,
-        mentorName: sql<string | null>`(
-          SELECT pf.full_name FROM profiles pf
-           INNER JOIN assignments ON assignments.mentor_id = pf.user_id
-           WHERE assignments.student_id = ${users.id}
-             AND assignments.status = 'active'
-           ORDER BY assignments.started_at DESC
-           LIMIT 1
-        )`,
-      })
-      .from(users)
-      .leftJoin(profiles, eq(profiles.userId, users.id))
-      .where(studentBase)
-      .orderBy(desc(users.createdAt))
-      .limit(STUDENT_LIMIT),
-  ]);
-
-  const filters = [
-    { key: "all", label: "All", count: Number(allRow?.c ?? 0) },
-  ];
+  const filters = [{ key: "all", label: "All", count: total }];
 
   return (
     <Shell
@@ -113,52 +77,28 @@ export default async function AdminStudentsPage() {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="px-4 py-10 text-center text-ink-faint italic"
-                >
+                <td colSpan={4} className="px-4 py-10 text-center text-ink-faint italic">
                   No data yet
                 </td>
               </tr>
             ) : (
-              rows.map((s: {
-                id: string;
-                email: string;
-                fullName: string | null;
-                lastLoginAt: Date | null;
-                mentorName: string | null;
-              }) => {
+              rows.map((s) => {
                 const name = s.fullName ?? s.email.split("@")[0];
                 return (
-                  <tr
-                    key={s.id}
-                    className="border-b border-rule last:border-0 hover:bg-surface-elevated/60"
-                  >
-                    <td className="px-4 py-3">
-                      <input type="checkbox" />
-                    </td>
+                  <tr key={s.id} className="border-b border-rule last:border-0 hover:bg-surface-elevated/60">
+                    <td className="px-4 py-3"><input type="checkbox" /></td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="avatar !w-8 !h-8 !text-xs">
-                          {initials(name)}
-                        </div>
+                        <div className="avatar !w-8 !h-8 !text-xs">{initials(name)}</div>
                         <div>
                           <div className="font-medium">{name}</div>
                           <div className="meta">{s.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-ink-soft">
-                      {s.mentorName ?? "—"}
-                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell text-ink-soft">{s.mentorName ?? "—"}</td>
                     <td className="px-4 py-3 text-right">
-                      <LinkButton
-                        href={`/admin/students/${s.id}`}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        Open
-                      </LinkButton>
+                      <LinkButton href={`/admin/students/${s.id}`} variant="ghost" size="sm">Open</LinkButton>
                     </td>
                   </tr>
                 );
@@ -169,9 +109,7 @@ export default async function AdminStudentsPage() {
       </Card>
 
       <div className="flex items-center justify-between mt-5">
-        <div className="meta">
-          Showing 1–{rows.length} of {Number(allRow?.c ?? 0)}
-        </div>
+        <div className="meta">Showing 1–{rows.length} of {total}</div>
         <div className="flex items-center gap-2">
           <button className="chip-ghost">← Prev</button>
           <span className="meta">Page 1 / 1</span>

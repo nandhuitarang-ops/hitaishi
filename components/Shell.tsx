@@ -114,6 +114,7 @@ export async function Shell({
                   <Link
                     key={item.key}
                     href={item.href}
+                    prefetch
                     aria-current={isActive ? "page" : undefined}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-btn text-sm transition-colors ${
                       isActive
@@ -184,6 +185,7 @@ export async function Shell({
               <Link
                 key={item.key}
                 href={item.href}
+                prefetch
                 aria-current={isActive ? "page" : undefined}
                 className={`flex flex-col items-center gap-1 px-2 py-1 text-[10px] ${
                   isActive ? "text-primary-deep font-medium" : "text-ink-faint"
