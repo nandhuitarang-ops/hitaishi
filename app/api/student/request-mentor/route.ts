@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { mentorRequests } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
@@ -19,6 +19,26 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { message } = body;
+
+    // Rate limit: max 2 requests per hour per student
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentRequests = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(mentorRequests)
+      .where(
+        and(
+          eq(mentorRequests.studentId, user.id),
+          gte(mentorRequests.createdAt, oneHourAgo),
+        ),
+      );
+
+    const recentCount = recentRequests[0]?.count ?? 0;
+    if (recentCount >= 2) {
+      return NextResponse.json(
+        { ok: false, error: "Rate limit: you can only request a mentor 2 times per hour. Please try again later." },
+        { status: 429 },
+      );
+    }
 
     // Check if there's already a pending request
     const existing = await db
