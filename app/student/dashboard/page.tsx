@@ -86,8 +86,10 @@ function subjectLabel(s: string): string {
   return s;
 }
 
-function elapsedFrom(d: Date | string, now: Date = new Date()): string {
+function elapsedFrom(d: Date | string | null | undefined, now: Date = new Date()): string {
+  if (!d) return "recently";
   const dateObj = typeof d === "string" ? new Date(d) : d;
+  if (!dateObj || isNaN(dateObj.getTime())) return "recently";
   const diff = now.getTime() - dateObj.getTime();
   const min = Math.floor(diff / 60000);
   if (min < 1) return "just now";
