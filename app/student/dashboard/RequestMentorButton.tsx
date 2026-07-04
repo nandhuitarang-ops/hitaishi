@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui";
 
-export function RequestMentorButton({ existingRequest }: { existingRequest?: { id: string; status: string; createdAt: Date } | null }) {
+export function RequestMentorButton({ existingRequestStatus }: { existingRequestStatus?: string | null }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [requestStatus, setRequestStatus] = useState(existingRequest?.status || null);
+  const [requestStatus, setRequestStatus] = useState(existingRequestStatus || null);
   const [error, setError] = useState<string | null>(null);
 
   if (requestStatus === "pending") {

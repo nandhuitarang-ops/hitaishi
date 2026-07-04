@@ -349,7 +349,7 @@ export default async function StudentDashboard() {
                 You don&apos;t have a mentor assigned yet. Request one and an admin
                 will match you with the right IITian mentor.
               </p>
-              <RequestMentorButton existingRequest={mentorRequestRow[0] ?? null} />
+              <RequestMentorButton existingRequestStatus={mentorRequestRow[0]?.status ?? null} />
             </CardBody>
           </Card>
         )}
