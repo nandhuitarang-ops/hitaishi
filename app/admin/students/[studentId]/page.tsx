@@ -65,8 +65,10 @@ export default async function AdminStudentProfilePage({
       .catch(() => [] as any[]),
   ]);
 
-  const hasMentor = !!mentorRow;
-  const hasPendingRequest = !!requestRow;
+  const mentor = mentorRow[0] ?? null;
+  const request = requestRow[0] ?? null;
+  const hasMentor = !!mentor;
+  const hasPendingRequest = !!request;
 
   return (
     <Shell
@@ -115,10 +117,10 @@ export default async function AdminStudentProfilePage({
               <CardHeader meta="PENDING REQUEST" title="Mentor Requested" />
               <CardBody>
                 <p className="text-sm text-ink-soft">
-                  {requestRow.message || "This student has requested a mentor."}
+                  {request.message || "This student has requested a mentor."}
                 </p>
                 <p className="text-xs text-ink-faint mt-2">
-                  Requested {formatLastSeen(requestRow.createdAt)} ago
+                  Requested {formatLastSeen(request.createdAt)} ago
                 </p>
               </CardBody>
             </Card>
@@ -131,29 +133,29 @@ export default async function AdminStudentProfilePage({
             <Card>
               <CardHeader
                 meta="CURRENT MENTOR"
-                title={mentorRow.mentorName ?? mentorRow.mentorEmail}
+                title={mentor.mentorName ?? mentor.mentorEmail}
                 action={<Pill tone="primary">Active</Pill>}
               />
               <CardBody className="flex gap-5">
                 <div className="avatar !w-14 !h-14 !text-xl">
-                  {initials(mentorRow.mentorName ?? mentorRow.mentorEmail ?? "")}
+                  {initials(mentor.mentorName ?? mentor.mentorEmail ?? "")}
                 </div>
                 <div className="flex-1 min-w-0">
-                  {mentorRow.mentorInstitute && (
-                    <p className="text-sm text-ink-soft">{mentorRow.mentorInstitute}</p>
+                  {mentor.mentorInstitute && (
+                    <p className="text-sm text-ink-soft">{mentor.mentorInstitute}</p>
                   )}
-                  {mentorRow.mentorSubjects && Array.isArray(mentorRow.mentorSubjects) && (
+                  {mentor.mentorSubjects && Array.isArray(mentor.mentorSubjects) && (
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      {(mentorRow.mentorSubjects as string[]).map((s) => (
+                      {(mentor.mentorSubjects as string[]).map((s) => (
                         <Pill key={s} tone="primary">{s}</Pill>
                       ))}
                     </div>
                   )}
-                  {mentorRow.mentorBio && (
-                    <p className="text-sm text-ink-soft mt-3 italic">&ldquo;{mentorRow.mentorBio}&rdquo;</p>
+                  {mentor.mentorBio && (
+                    <p className="text-sm text-ink-soft mt-3 italic">&ldquo;{mentor.mentorBio}&rdquo;</p>
                   )}
                   <p className="text-xs text-ink-faint mt-3">
-                    Assigned {mentorRow.startedAt ? formatLastSeen(mentorRow.startedAt) + " ago" : "recently"}
+                    Assigned {mentor.startedAt ? formatLastSeen(mentor.startedAt) + " ago" : "recently"}
                   </p>
                 </div>
               </CardBody>
