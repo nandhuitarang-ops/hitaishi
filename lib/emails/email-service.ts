@@ -307,10 +307,11 @@ export async function sendMentorApprovedEmail(
   toEmail: string,
   fullName: string,
   dashboardLink: string,
+  password?: string,
 ) {
   const subject = "Your Hitaishi mentor application has been approved! 🎉";
   if (!isRealEmailConfigured || !resend) {
-    logMockEmail(toEmail, subject, { fullName, dashboardLink });
+    logMockEmail(toEmail, subject, { fullName, dashboardLink, password });
     return { ok: true, mock: true };
   }
 
@@ -319,7 +320,7 @@ export async function sendMentorApprovedEmail(
       from: RESEND_FROM_MENTOR,
       to: toEmail,
       subject,
-      react: React.createElement(MentorApprovedEmail, { fullName, dashboardLink }),
+      react: React.createElement(MentorApprovedEmail, { fullName, dashboardLink, email: toEmail, password }),
     });
     if (error) throw error;
     return { ok: true, data };

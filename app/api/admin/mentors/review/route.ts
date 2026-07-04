@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/session";
 import { users, profiles, mentorVerifications } from "@/db/schema";
 import { leads } from "@/db/schema/leads";
 import { sendMentorApprovedEmail, sendMentorRejectedEmail } from "@/lib/emails/email-service";
+import { hashPassword } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,7 @@ async function handleLeadReview(
       .limit(1);
 
     let userId: string;
+    let generatedPassword: string | undefined = undefined;
 
     if (existing) {
       // User exists — update role to mentor
@@ -90,7 +92,10 @@ async function handleLeadReview(
         .set({ role: "mentor", status: "active", updatedAt: new Date() })
         .where(eq(users.id, userId));
     } else {
-      // Create new user (no password — mentor will use forgot-password flow)
+      // Generate a temporary password for new user
+      generatedPassword = Math.random().toString(36).slice(-10);
+      const passwordHash = await hashPassword(generatedPassword);
+
       const [inserted] = await db
         .insert(users)
         .values({
@@ -98,6 +103,7 @@ async function handleLeadReview(
           role: "mentor",
           status: "active",
           phone: lead.phone ?? null,
+          passwordHash,
         })
         .returning({ id: users.id });
 
@@ -174,7 +180,7 @@ async function handleLeadReview(
 
     // Send approval email
     const dashboardLink = `${APP_URL}/mentor/dashboard`;
-    const emailResult = await sendMentorApprovedEmail(email, fullName, dashboardLink);
+    const emailResult = await sendMentorApprovedEmail(email, fullName, dashboardLink, generatedPassword);
     if (!emailResult.ok) {
       console.error("Failed to send mentor approved email:", emailResult.error);
     }
