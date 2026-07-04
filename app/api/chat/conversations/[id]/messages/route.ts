@@ -11,12 +11,22 @@ import { Redis } from "@upstash/redis";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(20, "10 s"),
-  prefix: "ratelimit:chat",
-  analytics: true,
-});
+let ratelimit: Ratelimit | null = null;
+
+function getRatelimit(): Ratelimit | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null;
+  }
+  if (!ratelimit) {
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(20, "10 s"),
+      prefix: "ratelimit:chat",
+      analytics: true,
+    });
+  }
+  return ratelimit;
+}
 
 const Body = z.object({
   body: z.string().min(1).max(4000),
@@ -79,19 +89,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "invalid conversation id" }, { status: 400 });
   }
 
-  const { success, limit, remaining, reset } = await ratelimit.limit(user.id);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please slow down." },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-          'X-RateLimit-Reset': reset.toString(),
-        },
-      },
-    );
+  const limiter = getRatelimit();
+  if (limiter) {
+    try {
+      const { success, limit, remaining, reset } = await limiter.limit(user.id);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please slow down." },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            },
+          },
+        );
+      }
+    } catch (err) {
+      console.warn("Ratelimit failed to execute:", err);
+    }
   }
 
   const json = await req.json();
