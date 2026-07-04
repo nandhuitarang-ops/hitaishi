@@ -81,8 +81,8 @@ export function MentorApprovedEmail({ fullName, dashboardLink, email, password, 
 
         {/* Signature & Seal */}
         <div style={{ borderTop: "1px solid #f0f4f0", paddingTop: "24px", marginTop: "36px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "2px double #2f7d5c", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f0f8f3", color: "#2f7d5c", fontFamily: "Georgia, serif", fontSize: "9px", fontWeight: "bold", textTransform: "uppercase", textAlign: "center", lineHeight: "1.1", flexShrink: 0 }}>
-            Hitaishii<br/>Network
+          <div style={{ padding: "8px 16px", borderRadius: "30px", border: "1.5px solid #2f7d5c", backgroundColor: "#f0f8f3", color: "#2f7d5c", fontFamily: "Georgia, serif", fontSize: "11px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", textAlign: "center", lineHeight: "1.2", flexShrink: 0 }}>
+            Hitaishii Verified
           </div>
           <div>
             <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "bold", color: "#0b6445", fontStyle: "italic" }}>The Hitaishii Team</div>
