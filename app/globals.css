@@ -101,7 +101,7 @@ html {
   -webkit-text-size-adjust: 100%;
   background: var(--color-background);
   scroll-behavior: smooth;
-  zoom: 125%;
+  zoom: 110%;
 }
 
 section[id] {
