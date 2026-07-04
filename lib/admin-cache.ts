@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
-import { users, profiles, sessions, mentorVerifications, webhookEvents, conversations, assignments } from "@/db/schema";
-import { and, count, desc, eq, gte, isNull, lt, sql } from "drizzle-orm";
+import { users, profiles, sessions, auditLog, mentorVerifications, webhookEvents, conversations, assignments } from "@/db/schema";
+import { and, count, desc, eq, gte, ilike, isNull, lt, or, sql } from "drizzle-orm";
 
 /* Admin cached queries — cache for 60s to cut repeated Supabase roundtrips */
 
@@ -113,11 +113,28 @@ export type StudentListItem = {
 };
 
 export const getStudentsList = unstable_cache(
-  async (limit: number): Promise<{ rows: StudentListItem[]; total: number }> => {
-    const studentBase = and(eq(users.role, "student"), isNull(users.deletedAt));
+  async (
+    limit: number,
+    offset: number,
+    search?: string
+  ): Promise<{ rows: StudentListItem[]; total: number }> => {
+    const conditions = [eq(users.role, "student"), isNull(users.deletedAt)];
+
+    if (search?.trim()) {
+      const term = `%${search.trim()}%`;
+      conditions.push(
+        or(ilike(users.email, term), ilike(profiles.fullName, term))!
+      );
+    }
+
+    const filter = and(...conditions);
 
     const [[allRow], rawRows] = await Promise.all([
-      db.select({ c: count() }).from(users).where(studentBase),
+      db
+        .select({ c: count() })
+        .from(users)
+        .leftJoin(profiles, eq(profiles.userId, users.id))
+        .where(filter),
       db
         .select({
           id: users.id,
@@ -133,9 +150,10 @@ export const getStudentsList = unstable_cache(
           assignments,
           and(eq(assignments.studentId, users.id), eq(assignments.status, "active"))
         )
-        .where(studentBase)
+        .where(filter)
         .orderBy(desc(users.createdAt))
-        .limit(limit) as Promise<{
+        .limit(limit)
+        .offset(offset) as Promise<{
           id: string; email: string; phone: string | null;
           fullName: string | null; lastLoginAt: Date | null; mentorId: string | null;
         }[]>,
@@ -171,4 +189,43 @@ export const getStudentsList = unstable_cache(
   },
   ["admin-students-list"],
   { revalidate: 60 }
+);
+
+export const getLiveSessions = unstable_cache(
+  async () => {
+    return db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        startedAt: sessions.startedAt,
+      })
+      .from(sessions)
+      .where(eq(sessions.status, "live"))
+      .orderBy(desc(sessions.startedAt))
+      .limit(10) as Promise<{ id: string; title: string | null; startedAt: Date | null }[]>;
+  },
+  ["admin-live-sessions-detail"],
+  { revalidate: 15 }
+);
+
+export const getRecentAuditLog = unstable_cache(
+  async () => {
+    return db
+      .select({
+        id: auditLog.id,
+        action: auditLog.action,
+        targetType: auditLog.targetType,
+        targetId: auditLog.targetId,
+        createdAt: auditLog.createdAt,
+        actorName: profiles.fullName,
+        actorEmail: users.email,
+      })
+      .from(auditLog)
+      .leftJoin(users, eq(users.id, auditLog.actorId))
+      .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(10) as Promise<{ id: number; action: string; targetType: string | null; targetId: string | null; createdAt: Date | null; actorName: string | null; actorEmail: string | null }[]>;
+  },
+  ["admin-recent-audit-log"],
+  { revalidate: 15 }
 );

@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import { CLOSING_CTA } from "@/lib/content/hero";
 import { PRIMARY_CTAS } from "@/lib/content/brand";
 
@@ -14,12 +12,7 @@ export function ClosingCtaSection() {
         style={{ background: "radial-gradient(circle, var(--color-sky-soft) 0%, transparent 70%)" }}
       />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-[1fr_0.6fr] md:gap-16 md:px-12 lg:px-20">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <Reveal animation="fade-up">
           <h2 className="font-serif text-3xl font-medium leading-tight tracking-tight text-[var(--color-fg)] md:text-4xl lg:text-[3.25rem] lg:leading-[1.1]">
             {CLOSING_CTA.headline}
           </h2>
@@ -40,23 +33,20 @@ export function ClosingCtaSection() {
               Partner With Us <span aria-hidden>→</span>
             </Link>
           </div>
-        </motion.div>
+        </Reveal>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        <Reveal
+          animation="scale-in"
           className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-3xl bg-[var(--color-surface-hover)] shadow-[var(--shadow-lift)]"
         >
           <Image
-            src="/images/hitaishi/lamp-symbol-hero.png"
+            src="/images/hitaishi/lamp-symbol-hero.webp"
             alt="The warmth of a wellwisher"
             fill
             sizes="(max-width: 768px) 80vw, 30vw"
             className="object-cover"
           />
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

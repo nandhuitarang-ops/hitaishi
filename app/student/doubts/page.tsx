@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -17,6 +18,11 @@ import { getCurrentUser } from "@/lib/session";
 import { createDoubt } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Doubts — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 function subjectLabel(s: string): string {
   if (s === "physics") return "Physics";
@@ -120,6 +126,7 @@ export default async function StudentDoubtsPage({
       pageCode="S.06 — DOUBT QUEUE"
       pageTitle="Resolve your concepts"
       pageSubtitle="Ask anything in plain English. Average mentor response: 2 hours."
+      user={user}
     >
       <Card className="mb-6">
         <CardHeader meta="ASK A NEW DOUBT" title="Have a doubt? Ask now." />

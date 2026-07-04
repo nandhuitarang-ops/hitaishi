@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, desc, eq, gte, inArray, ne, or, sql } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -21,8 +22,17 @@ import {
 } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { RequestMentorButton } from "./RequestMentorButton";
+import {
+  getStudentDoubtsAnsweredCount,
+  getStudentResourcesReceivedCount,
+} from "@/lib/student-cache";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Dashboard — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 function greetingFor(d: Date): string {
   const h = d.getHours();
@@ -112,8 +122,8 @@ export default async function StudentDashboard() {
     assignmentRows,
     myParticipations,
     recentAnswers,
-    doubtsAnsweredRow,
-    resourcesReceivedRow,
+    doubtsAnsweredCount,
+    resourcesReceivedCount,
     lastMessageRow,
     recentResourcesShared,
     mentorRequestRow,
@@ -158,14 +168,8 @@ export default async function StudentDashboard() {
       .where(and(eq(doubts.studentId, user.id), eq(doubts.status, "answered")))
       .orderBy(desc(doubtAnswers.createdAt))
       .limit(5),
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(doubts)
-      .where(and(eq(doubts.studentId, user.id), eq(doubts.status, "answered"))),
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(resourceShares)
-      .where(eq(resourceShares.targetUserId, user.id)),
+    getStudentDoubtsAnsweredCount(user.id),
+    getStudentResourcesReceivedCount(user.id),
     db
       .select({ body: messages.body, createdAt: messages.createdAt })
       .from(messages)
@@ -265,8 +269,6 @@ export default async function StudentDashboard() {
     sessionsCompletedCount = completedRow[0]?.count ?? 0;
   }
 
-  const doubtsAnsweredCount = doubtsAnsweredRow[0]?.count ?? 0;
-  const resourcesReceivedCount = resourcesReceivedRow[0]?.count ?? 0;
   const lastMessage = lastMessageRow[0] ?? null;
 
   const greeting = greetingFor(new Date());
@@ -284,6 +286,7 @@ export default async function StudentDashboard() {
       pageCode="S.03 — DASHBOARD"
       pageTitle={`${greeting}, ${firstName}.`}
       pageSubtitle={subtitle}
+      user={user}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {mentor ? (

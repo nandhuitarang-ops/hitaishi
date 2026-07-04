@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
 
-const BCRYPT_COST = 12;
+const BCRYPT_COST = 10;
 
 export async function hashPassword(plain: string): Promise<string> {
   if (!plain || plain.length < 1) {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, asc, desc, eq, inArray, gt } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -8,6 +9,11 @@ import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages, profiles, sessionParticipants, sessions, users } from "@/db/schema";
 import { MentorChatClient, type ConvListItem, type InitialMessage, type RightPanelData } from "./MentorChatClient";
+
+export const metadata: Metadata = {
+  title: "Chat — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 export default async function MentorChatPage() {
   const user = await getCurrentUser();
@@ -21,7 +27,7 @@ export default async function MentorChatPage() {
 
   if (myParticipations.length === 0) {
     return (
-      <Shell role="mentor" active="chat" pageCode="M.04 — STUDENT CHAT" pageTitle="Chat" pageSubtitle="Talk to your students.">
+      <Shell role="mentor" active="chat" pageCode="M.04 — STUDENT CHAT" pageTitle="Chat" pageSubtitle="Talk to your students." user={user}>
         <PrivacyNoticeBanner />
         <Card>
           <CardBody>
@@ -61,7 +67,8 @@ export default async function MentorChatPage() {
       })
       .from(messages)
       .where(inArray(messages.conversationId, convIds))
-      .orderBy(desc(messages.createdAt)),
+      .orderBy(desc(messages.createdAt))
+      .limit(50),
     db
       .select({
         id: sessions.id,
@@ -129,7 +136,7 @@ export default async function MentorChatPage() {
   };
 
   return (
-    <Shell role="mentor" active="chat" pageCode="M.04 — STUDENT CHAT" pageTitle="Chat" pageSubtitle="Real-time conversations with your students">
+    <Shell role="mentor" active="chat" pageCode="M.04 — STUDENT CHAT" pageTitle="Chat" pageSubtitle="Real-time conversations with your students" user={user}>
       <PrivacyNoticeBanner />
       <MentorChatClient
         userId={user.id}

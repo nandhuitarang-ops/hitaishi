@@ -75,8 +75,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       .onConflictDoNothing();
   }
 
-  return NextResponse.json({
-    conversationId,
-    memberIds,
-  });
+  return NextResponse.json(
+    {
+      conversationId,
+      memberIds,
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

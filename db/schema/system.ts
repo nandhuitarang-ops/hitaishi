@@ -9,6 +9,7 @@ import {
   jsonb,
   pgEnum,
   inet,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./identity";
 
@@ -34,27 +35,40 @@ const ts = () => ({
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  recipientId: uuid("recipient_id").references(() => users.id).notNull(),
-  channel: notificationChannelEnum("channel").notNull(),
-  templateCode: varchar("template_code", { length: 60 }).notNull(),
-  payload: jsonb("payload"),
-  providerId: varchar("provider_id", { length: 80 }),
-  status: notificationStatusEnum("status").notNull().default("queued"),
-  ...ts(),
-});
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    recipientId: uuid("recipient_id").references(() => users.id).notNull(),
+    channel: notificationChannelEnum("channel").notNull(),
+    templateCode: varchar("template_code", { length: 60 }).notNull(),
+    payload: jsonb("payload"),
+    providerId: varchar("provider_id", { length: 80 }),
+    status: notificationStatusEnum("status").notNull().default("queued"),
+    ...ts(),
+  },
+  (t) => ({
+    recipientIdx: index("idx_notifications_recipient_id").on(t.recipientId),
+  }),
+);
 
-export const auditLog = pgTable("audit_log", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  actorId: uuid("actor_id").references(() => users.id),
-  action: varchar("action", { length: 60 }).notNull(),
-  targetType: varchar("target_type", { length: 40 }),
-  targetId: uuid("target_id"),
-  metadata: jsonb("metadata"),
-  ipAddress: inet("ip_address"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    actorId: uuid("actor_id").references(() => users.id),
+    action: varchar("action", { length: 60 }).notNull(),
+    targetType: varchar("target_type", { length: 40 }),
+    targetId: uuid("target_id"),
+    metadata: jsonb("metadata"),
+    ipAddress: inet("ip_address"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    actorIdIdx: index("idx_audit_log_actor_id").on(t.actorId),
+    createdAtIdx: index("idx_audit_log_created_at").on(t.createdAt.desc()),
+  }),
+);
 
 export const webhookEvents = pgTable("webhook_events", {
   id: uuid("id").primaryKey().defaultRandom(),

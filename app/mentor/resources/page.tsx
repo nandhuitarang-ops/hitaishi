@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill, Field, Input, Select, Textarea } from "@/components/ui";
 import { db } from "@/lib/db";
@@ -6,6 +7,11 @@ import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Resources — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 const SCOPES = [
   { value: "private", label: "Private — only me" },
@@ -98,6 +104,7 @@ export default async function MentorResourcesPage() {
       pageCode="M.08 — RESOURCES (UPLOAD & SHARE)"
       pageTitle="Resources you've shared"
       pageSubtitle="Upload notes, link to videos, and pick who can see them."
+      user={user}
     >
       <Card className="mb-6">
         <CardHeader meta="UPLOAD" title="Add a new resource" />

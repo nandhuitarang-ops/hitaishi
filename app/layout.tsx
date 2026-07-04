@@ -67,7 +67,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-scroll-behavior="smooth"
       className={`${playfair.variable} ${inter.variable} ${jetbrains.variable} antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+      </head>
       <body className="min-h-screen flex flex-col">
+        <script type="speculationrules" dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            prerender: [{
+              where: {
+                href_matches: "/*",
+                not: { href_matches: ["/admin/*", "/student/*", "/mentor/*", "/api/*", "/session/*"] }
+              },
+              eagerness: "moderate"
+            }]
+          })
+        }} />
         <MotionProvider>
           <IntroClip />
           <Suspense fallback={null}>

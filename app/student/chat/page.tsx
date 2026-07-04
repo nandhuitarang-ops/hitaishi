@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, asc, desc, eq, inArray, gt } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -8,6 +9,11 @@ import { getCurrentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages, profiles, sessionParticipants, sessions, users } from "@/db/schema";
 import { ChatClient, type ConvListItem, type InitialMessage, type RightPanelData } from "./ChatClient";
+
+export const metadata: Metadata = {
+  title: "Chat — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 export default async function StudentChatPage() {
   const user = await getCurrentUser();
@@ -21,7 +27,7 @@ export default async function StudentChatPage() {
 
   if (myParticipations.length === 0) {
     return (
-      <Shell role="student" active="chat" pageCode="S.04 — MENTOR CHAT" pageTitle="Chat" pageSubtitle="Talk to your assigned mentor.">
+      <Shell role="student" active="chat" pageCode="S.04 — MENTOR CHAT" pageTitle="Chat" pageSubtitle="Talk to your assigned mentor." user={user}>
         <PrivacyNoticeBanner />
         <Card>
           <CardBody>
@@ -60,7 +66,8 @@ export default async function StudentChatPage() {
       })
       .from(messages)
       .where(inArray(messages.conversationId, convIds))
-      .orderBy(desc(messages.createdAt)),
+      .orderBy(desc(messages.createdAt))
+      .limit(50),
     db
       .select({
         id: sessions.id,
@@ -140,6 +147,7 @@ export default async function StudentChatPage() {
       pageCode="S.04 — MENTOR CHAT"
       pageTitle="Chat"
       pageSubtitle="Real-time conversations with your mentors"
+      user={user}
       actions={
         <LinkButton href="/student/sessions" variant="ghost" size="sm">
           Schedule call

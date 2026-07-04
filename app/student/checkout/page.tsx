@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Check } from "lucide-react";
@@ -9,6 +10,11 @@ import { Card, CardBody, Pill } from "@/components/ui";
 import { PayButton } from "./PayButton";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Checkout — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 const PLAN = {
   name: "Hitaishi Mentorship",

@@ -1,11 +1,18 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
 import { db } from "@/lib/db";
-import { sessions, sessionParticipants, users, profiles, conversations, messages } from "@/db/schema";
-import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { requireRole } from "@/lib/session";
+import { sessions, sessionParticipants, users, profiles, conversations } from "@/db/schema";
+import { and, desc, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sessions — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 function elapsedHms(d: Date | null): string {
   if (!d) return "00:00:00";
@@ -18,6 +25,7 @@ function elapsedHms(d: Date | null): string {
 }
 
 export default async function AdminSessionsPage() {
+  const user = await requireRole("admin");
   const [live, recordings, flaggedConvs] = await Promise.all([
     db
       .select({
@@ -82,6 +90,7 @@ export default async function AdminSessionsPage() {
       pageCode="A.05 — SESSION MONITOR"
       pageTitle="Session monitor"
       pageSubtitle="Live oversight of in-progress sessions, with TOS-disclosed silent observe."
+      user={user}
       actions={
         <input
           placeholder="Search session, mentor, student…"
@@ -125,7 +134,7 @@ export default async function AdminSessionsPage() {
           </CardBody>
         </Card>
       ) : (
-        <div className="grid gap-3 mb-8">
+        <div className="grid gap-3 mb-8" style={{ contentVisibility: "auto", containIntrinsicSize: "auto 120px" }}>
           {live.map((s: any) => {
             const mentorName = s.hostName ?? s.hostEmail.split("@")[0];
             const count = participantCounts.get(s.id) ?? 0;
@@ -165,7 +174,7 @@ export default async function AdminSessionsPage() {
             <div className="text-sm text-ink-soft text-center py-4">No flagged conversations.</div>
           </CardBody>
         ) : (
-          <ul>
+          <ul style={{ contentVisibility: "auto", containIntrinsicSize: "auto 60px" }}>
             {flaggedConvs.map((f: any) => (
               <li
                 key={f.id}
@@ -193,7 +202,7 @@ export default async function AdminSessionsPage() {
             <div className="text-sm text-ink-soft text-center py-4">No recordings yet.</div>
           </CardBody>
         ) : (
-          <ul>
+          <ul style={{ contentVisibility: "auto", containIntrinsicSize: "auto 60px" }}>
             {recordings.map((r: any) => {
               const mentorName = r.hostName ?? r.hostEmail.split("@")[0];
               return (

@@ -48,6 +48,7 @@ export const assignments = pgTable(
   (t) => ({
     studentIdx: index("assignments_student_idx").on(t.studentId),
     mentorIdx: index("assignments_mentor_idx").on(t.mentorId),
+    mentorStatusIdx: index("idx_assignments_mentor_status").on(t.mentorId, t.status),
   }),
 );
 
@@ -97,7 +98,10 @@ export const conversationParticipants = pgTable(
     muted: boolean("muted").notNull().default(false),
     ...ts(),
   },
-  (t) => ({ pk: primaryKey({ columns: [t.conversationId, t.userId] }) }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.conversationId, t.userId] }),
+    userIdIdx: index("idx_conversation_participants_user_id").on(t.userId),
+  }),
 );
 
 export const messages = pgTable(
@@ -114,5 +118,12 @@ export const messages = pgTable(
     editedAt: timestamp("edited_at", { withTimezone: true }),
     ...ts(),
   },
-  (t) => ({ convIdx: index("messages_conversation_idx").on(t.conversationId) }),
+  (t) => ({
+    convIdx: index("messages_conversation_idx").on(t.conversationId),
+    senderIdx: index("idx_messages_sender_id").on(t.senderId),
+    convCreatedIdx: index("idx_messages_conversation_created").on(
+      t.conversationId,
+      t.createdAt.desc(),
+    ),
+  }),
 );

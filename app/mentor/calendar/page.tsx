@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, Pill } from "@/components/ui";
 import { db } from "@/lib/db";
@@ -6,6 +7,11 @@ import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Calendar — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const hours = [
@@ -178,6 +184,7 @@ export default async function MentorCalendarPage() {
       pageCode="M.07 — CALENDAR"
       pageTitle="Availability"
       pageSubtitle="Tap a cell to toggle. Booked slots can't be edited from here — cancel via the session."
+      user={user}
       actions={
         <div className="flex items-center gap-2">
           <button className="chip-cta text-xs">Availability</button>

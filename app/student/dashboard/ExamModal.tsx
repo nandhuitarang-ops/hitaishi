@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Modal, Button, Field, Input, Textarea, Pill, Card, CardHeader, CardBody } from "@/components/ui";
+import { Button, Field, Input, Textarea, Pill, Card, CardHeader, CardBody } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 
 interface ExamResult {
   id: string;

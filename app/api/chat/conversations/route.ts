@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import { and, desc, eq, gt, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { conversationParticipants, conversations, messages, profiles, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
@@ -15,10 +15,18 @@ export async function GET() {
     .from(conversationParticipants)
     .where(eq(conversationParticipants.userId, user.id));
 
-  if (myConvs.length === 0) return NextResponse.json({ items: [] });
+  if (myConvs.length === 0)
+    return NextResponse.json(
+      { items: [] },
+      { headers: { "Cache-Control": "no-store" } },
+    );
 
   const convIds = (myConvs as any[]).map((c) => c.convId);
   const lastReadMap = new Map<string, Date>((myConvs as any[]).map((c) => [c.convId, c.lastReadAt]));
+
+  const { searchParams } = req.nextUrl;
+  const cursorParam = searchParams.get("cursor");
+  const cursor = cursorParam ? new Date(cursorParam) : null;
 
   const [convMeta, allParticipants, latestMsgs] = await Promise.all([
     db.select().from(conversations).where(inArray(conversations.id, convIds)),
@@ -44,9 +52,21 @@ export async function GET() {
         createdAt: messages.createdAt,
       })
       .from(messages)
-      .where(inArray(messages.conversationId, convIds))
-      .orderBy(desc(messages.createdAt)),
+      .where(
+        and(
+          inArray(messages.conversationId, convIds),
+          cursor ? lt(messages.createdAt, cursor) : undefined,
+        ),
+      )
+      .orderBy(desc(messages.createdAt))
+      .limit(100),
   ]);
+
+  const hasMore = latestMsgs.length === 100;
+  const nextCursor =
+    hasMore && latestMsgs.length > 0
+      ? (latestMsgs[latestMsgs.length - 1] as any).createdAt.toISOString()
+      : null;
 
   const result = (convMeta as any[]).map((c) => {
     const others = (allParticipants as any[]).filter((p) => p.conversationId === c.id && p.userId !== user.id);
@@ -77,5 +97,8 @@ export async function GET() {
     return bt - at;
   });
 
-  return NextResponse.json({ items: result });
+  return NextResponse.json(
+    { items: result, nextCursor },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

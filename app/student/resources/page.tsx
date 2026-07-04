@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, desc, eq, or } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -8,6 +9,11 @@ import { profiles, resourceShares, resources, users } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Resources — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 const tabs = ["All", "Physics", "Chemistry", "Math", "Mock Tests"];
 
@@ -105,6 +111,7 @@ export default async function StudentResourcesPage() {
       pageCode="S.07 — RESOURCES LIBRARY"
       pageTitle="Resources"
       pageSubtitle="Curated by your mentors. Filter by subject or recency."
+      user={user}
       actions={
         <input
           placeholder="Search resources…"

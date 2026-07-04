@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, Field, Input, Pill } from "@/components/ui";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Settings — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
@@ -31,7 +37,7 @@ const integrations = [
 ];
 
 export default async function AdminSettingsPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   return (
     <Shell
@@ -40,6 +46,7 @@ export default async function AdminSettingsPage() {
       pageCode="A.08 — SETTINGS & CONFIGURATION"
       pageTitle="Platform settings"
       pageSubtitle="Feature flags, integrations, security policies."
+      user={user}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card>

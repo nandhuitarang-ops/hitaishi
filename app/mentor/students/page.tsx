@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { Card, LinkButton, Pill } from "@/components/ui";
@@ -15,6 +16,11 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "My Students — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 const statusTone = {
   on_track: "primary",
@@ -170,6 +176,7 @@ export default async function MentorStudentsPage() {
       pageCode="M.04 — MY STUDENTS"
       pageTitle="Student roster"
       pageSubtitle="Triage and track individual performance across your cohort."
+      user={user}
       actions={
         <input
           placeholder="Search students…"

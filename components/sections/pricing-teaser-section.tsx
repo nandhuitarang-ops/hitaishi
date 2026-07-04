@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import { PRICING_TEASER } from "@/lib/content/hero";
 import { PRIMARY_CTAS } from "@/lib/content/brand";
 
@@ -11,13 +9,7 @@ export function PricingTeaserSection() {
       id="pricing-teaser"
       className="bg-[var(--color-background)] py-24 md:py-32"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto max-w-3xl px-6 text-center md:px-12"
-      >
+      <Reveal className="mx-auto max-w-3xl px-6 text-center md:px-12">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-sky)]">
           {PRICING_TEASER.eyebrow}
         </p>
@@ -33,7 +25,7 @@ export function PricingTeaserSection() {
         >
           {PRIMARY_CTAS.pricing.label} <span aria-hidden>→</span>
         </Link>
-      </motion.div>
+      </Reveal>
     </section>
   );
 }

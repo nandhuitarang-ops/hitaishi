@@ -78,6 +78,11 @@ export async function GET(
         currentMentor: currentMentorRows[0] ?? null,
         pendingRequest: pendingRequestRows[0] ?? null,
       }),
+      {
+        headers: {
+          "Cache-Control": "private, max-age=0, stale-while-revalidate=60",
+        },
+      },
     );
   } catch (err) {
     console.error("get student error:", err);

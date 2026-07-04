@@ -41,8 +41,17 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2678400,
+    deviceSizes: [640, 768, 1024, 1280, 1536],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "@supabase/supabase-js",
     ],
   },
   async headers() {
@@ -52,6 +61,9 @@ const nextConfig = {
       { source: "/api/leads", headers: [
         { key: "Cache-Control", value: "no-store" },
         { key: "X-Robots-Tag", value: "noindex" },
+      ]},
+      { source: "/_next/static/:path*", headers: [
+        { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
       ]},
     ];
   },

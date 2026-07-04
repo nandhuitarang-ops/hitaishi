@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { PrivacyNoticeBanner } from "@/components/PrivacyNoticeBanner";
 import { SessionsClient } from "./SessionsClient";
@@ -7,6 +8,11 @@ import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-or
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sessions — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 type SessionRow = {
   id: string;
@@ -130,6 +136,7 @@ export default async function MentorSessionsPage() {
       pageCode="M.10 — SESSIONS"
       pageTitle="Your sessions"
       pageSubtitle="Create, join, and review live mentoring sessions."
+      user={user}
     >
       <PrivacyNoticeBanner />
       <SessionsClient live={live} upcoming={upcoming} past={past} students={students} />

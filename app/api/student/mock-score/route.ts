@@ -76,5 +76,8 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json(row, { status: 201 });
+  return NextResponse.json(row, {
+    status: 201,
+    headers: { "Cache-Control": "private, max-age=0" },
+  });
 }

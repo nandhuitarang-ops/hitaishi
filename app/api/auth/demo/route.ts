@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   const role = req.nextUrl.searchParams.get("role");
 
   if (!role || !["student", "mentor", "admin"].includes(role)) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/login", req.url), {
+      headers: { "Cache-Control": "private, max-age=0" },
+    });
   }
 
   const email = DEMO_EMAIL[role as Role];
@@ -27,11 +29,19 @@ export async function GET(req: NextRequest) {
     .limit(1);
 
   const u = rows[0];
-  if (!u) return NextResponse.redirect(new URL("/login", req.url));
+  if (!u)
+    return NextResponse.redirect(new URL("/login", req.url), {
+      headers: { "Cache-Control": "private, max-age=0" },
+    });
 
   const ok = await verifyPassword("demo1234", u.passwordHash ?? "");
-  if (!ok) return NextResponse.redirect(new URL("/login", req.url));
+  if (!ok)
+    return NextResponse.redirect(new URL("/login", req.url), {
+      headers: { "Cache-Control": "private, max-age=0" },
+    });
 
   await createSession(u.id);
-  return NextResponse.redirect(new URL(`/${role}/dashboard`, req.url));
+  return NextResponse.redirect(new URL(`/${role}/dashboard`, req.url), {
+    headers: { "Cache-Control": "private, max-age=0" },
+  });
 }

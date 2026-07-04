@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/session";
 import { logoutAction } from "@/app/login/actions";
 
 type StudentNav =
@@ -35,6 +34,7 @@ interface ShellProps {
   pageSubtitle?: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  user?: { fullName?: string | null; email: string } | null;
 }
 
 const NAV = {
@@ -81,14 +81,9 @@ export async function Shell({
   pageSubtitle,
   actions,
   children,
+  user,
 }: ShellProps) {
   const items = NAV[role];
-  let user = null;
-  try {
-    user = await getCurrentUser();
-  } catch {
-    // ignore — render shell without user info
-  }
 
   return (
     <main className="min-h-screen bg-surface text-ink">

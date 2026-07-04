@@ -6,20 +6,17 @@ import { conversationParticipants, conversations, messages } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { sendMessage, type MessageStore, type RealtimePublisher } from "@/lib/messages";
 import { broadcastNewMessage } from "@/lib/realtime/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// In-process rate limiter: max 20 messages per 10 seconds per user
-const rateLimits = new Map<string, number[]>();
-function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
-  const entries = rateLimits.get(key) ?? [];
-  const windowed = entries.filter((t) => now - t < windowMs);
-  if (windowed.length >= limit) return false;
-  windowed.push(now);
-  rateLimits.set(key, windowed);
-  return true;
-}
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(20, "10 s"),
+  prefix: "ratelimit:chat",
+  analytics: true,
+});
 
 const Body = z.object({
   body: z.string().min(1).max(4000),
@@ -82,8 +79,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "invalid conversation id" }, { status: 400 });
   }
 
-  if (!checkRateLimit(user.id, 20, 10_000)) {
-    return NextResponse.json({ error: "too many requests" }, { status: 429 });
+  const { success, limit, remaining, reset } = await ratelimit.limit(user.id);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': remaining.toString(),
+          'X-RateLimit-Reset': reset.toString(),
+        },
+      },
+    );
   }
 
   const json = await req.json();
@@ -99,7 +107,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (result.status === "forbidden") return NextResponse.json({ error: "forbidden" }, { status: 403 });
   if (result.status === "not_found") return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (result.status === "invalid") return NextResponse.json({ error: result.reason }, { status: 400 });
-  return NextResponse.json({ id: result.messageId, flags: result.flags }, { status: 201 });
+  return NextResponse.json(
+    { id: result.messageId, flags: result.flags },
+    {
+      status: 201,
+      headers: { "Cache-Control": "private, max-age=0" },
+    },
+  );
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -131,7 +145,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     })
     .from(messages)
     .where(eq(messages.conversationId, id))
-    .orderBy(messages.createdAt);
+    .orderBy(messages.createdAt)
+    .limit(50);
 
-  return NextResponse.json({ items: rows });
+  return NextResponse.json(
+    { items: rows },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

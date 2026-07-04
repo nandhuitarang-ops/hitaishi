@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
@@ -10,12 +11,17 @@ import { and, desc, eq, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Student Details — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
+
 export default async function AdminStudentProfilePage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
 }) {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   const { studentId } = await params;
 
@@ -69,6 +75,7 @@ export default async function AdminStudentProfilePage({
       pageCode="A.03 — STUDENT PROFILE"
       pageTitle={name}
       pageSubtitle={student.email}
+      user={user}
       actions={
         <LinkButton href="/admin/students" variant="ghost" size="sm">
           ← Back to Students

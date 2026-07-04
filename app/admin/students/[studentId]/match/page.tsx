@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
@@ -11,12 +12,17 @@ import { MatchButton } from "./MatchButton";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Match Mentor — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
+
 export default async function AdminMatchMentorPage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
 }) {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   const { studentId } = await params;
 
@@ -84,6 +90,7 @@ export default async function AdminMatchMentorPage({
       pageCode="A.03 — MATCH MENTOR"
       pageTitle={`Match mentor for ${studentName}`}
       pageSubtitle="Select an available mentor to assign."
+      user={user}
       actions={
         <LinkButton href={`/admin/students/${studentId}`} variant="ghost" size="sm">
           ← Back to Profile

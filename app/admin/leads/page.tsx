@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { readLeads } from "@/lib/leadsStore";
 import type { Lead } from "@/lib/leadTypes";
 import { LeadsTableActions } from "./LeadsTableActions";
 import { Mail, Phone, Inbox, Calendar, MessageSquare } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Leads — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 const TYPE_LABEL: Record<Lead["type"], string> = {
   "student-inquiry": "Student",

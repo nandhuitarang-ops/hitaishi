@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -9,6 +10,11 @@ import { conversationParticipants, conversations, messages, profiles, users } fr
 import { AdminChatClient, type ConvListItem, type InitialMessage } from "./AdminChatClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Chat Monitor — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 export default async function AdminChatPage() {
   const user = await getCurrentUser();
@@ -22,7 +28,7 @@ export default async function AdminChatPage() {
 
   if (myParticipations.length === 0) {
     return (
-      <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat" pageSubtitle="Conversations with users.">
+      <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat" pageSubtitle="Conversations with users." user={user}>
         <PrivacyNoticeBanner />
         <Card>
           <CardBody>
@@ -62,7 +68,8 @@ export default async function AdminChatPage() {
       })
       .from(messages)
       .where(inArray(messages.conversationId, convIds))
-      .orderBy(desc(messages.createdAt)),
+      .orderBy(desc(messages.createdAt))
+      .limit(50),
     db
       .select({
         id: messages.id,
@@ -73,7 +80,8 @@ export default async function AdminChatPage() {
       })
       .from(messages)
       .where(inArray(messages.conversationId, convIds))
-      .orderBy(asc(messages.createdAt)),
+      .orderBy(asc(messages.createdAt))
+      .limit(50),
   ]);
 
   const initialConvs: ConvListItem[] = (convMeta as any[]).map((c) => {
@@ -114,7 +122,7 @@ export default async function AdminChatPage() {
     : [];
 
   return (
-    <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat" pageSubtitle="Conversations with students and mentors">
+    <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat" pageSubtitle="Conversations with students and mentors" user={user}>
       <PrivacyNoticeBanner />
       <AdminChatClient
         userId={user.id}

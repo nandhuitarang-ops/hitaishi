@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
@@ -7,6 +8,11 @@ import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Doubts — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -147,6 +153,7 @@ export default async function MentorDoubtsPage() {
       pageCode="M.06 — DOUBT INBOX"
       pageTitle="Doubt inbox"
       pageSubtitle="Claim a doubt to lock it for 30 minutes while you write the answer."
+      user={user}
     >
       <div className="flex flex-wrap gap-2 mb-5">
         {tabs.map((t, i) => (

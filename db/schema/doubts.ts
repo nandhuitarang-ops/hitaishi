@@ -10,6 +10,7 @@ import {
   pgEnum,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "./identity";
 
 export const subjectEnum = pgEnum("subject", [
@@ -50,6 +51,11 @@ export const doubts = pgTable(
     studentIdx: index("doubts_student_idx").on(t.studentId),
     subjectIdx: index("doubts_subject_idx").on(t.subject),
     statusIdx: index("doubts_status_idx").on(t.status),
+    claimedByIdx: index("idx_doubts_claimed_by").on(t.claimedBy),
+    studentStatusIdx: index("idx_doubts_student_status").on(t.studentId, t.status),
+    doubtsPartialIdx: index("idx_doubts_open_or_claimed")
+      .on(t.studentId, t.status, t.claimedBy)
+      .where(sql`status = 'open' OR (status = 'claimed' AND claimed_by IS NOT NULL)`),
   }),
 );
 

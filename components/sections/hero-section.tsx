@@ -104,7 +104,7 @@ export function HeroSection() {
               style={{ marginBottom: "8px" }}
             >
               <Image
-                src="/images/hitaishi/hero-student-cutout-transparent.png"
+                src="/images/hitaishi/hero-student-cutout-transparent.webp"
                 alt="JEE Aspirant Student Portrait"
                 fill
                 sizes="(max-w-px) 100vw, 540px"

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Shell } from "@/components/Shell";
@@ -19,6 +20,11 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "My Students — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -170,6 +176,7 @@ export default async function MentorStudentDetailPage({ params }: PageProps) {
       pageCode="M.05 — STUDENT CONVERSATION"
       pageTitle={studentName}
       pageSubtitle={`${targetLabel} · ${studentRow.email}`}
+      user={user}
       actions={
         <div className="flex items-center gap-2">
           <Link href="/mentor/students" className="chip-ghost text-xs">

@@ -78,7 +78,11 @@ export async function GET(req: NextRequest) {
         users.email,
       );
 
-    return Response.json(ok(mentors));
+    return Response.json(ok(mentors), {
+      headers: {
+        "Cache-Control": "private, max-age=0, stale-while-revalidate=60",
+      },
+    });
   } catch (err) {
     console.error("get available mentors error:", err);
     return Response.json(

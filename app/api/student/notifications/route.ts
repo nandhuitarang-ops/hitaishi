@@ -49,5 +49,8 @@ export async function POST(request: Request) {
     createdAt: now,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(
+    { ok: true },
+    { headers: { "Cache-Control": "private, max-age=0" } },
+  );
 }

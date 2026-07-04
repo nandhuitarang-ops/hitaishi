@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import { AUDIENCES } from "@/lib/content/hero";
 
 export function AudienceCardsSection() {
@@ -11,24 +9,18 @@ export function AudienceCardsSection() {
       className="bg-[var(--color-background-alt)] py-24 md:py-32"
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-20">
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        <Reveal
+          as="h2"
           className="mx-auto max-w-3xl text-center font-serif text-3xl font-medium leading-tight tracking-tight text-[var(--color-fg)] md:text-4xl lg:text-5xl"
         >
           Built for everyone in the JEE journey.
-        </motion.h2>
+        </Reveal>
 
         <div className="mt-14 grid gap-6 md:mt-16 md:grid-cols-3 md:gap-8">
           {AUDIENCES.map((aud, i) => (
-            <motion.div
+            <Reveal
               key={aud.href}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              delay={i * 100}
             >
               <Link
                 href={aud.href}
@@ -44,7 +36,7 @@ export function AudienceCardsSection() {
                   {aud.label}
                 </p>
               </Link>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

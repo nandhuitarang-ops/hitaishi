@@ -2,21 +2,20 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 
 interface PageBannerProps {
   src: string;
   alt: string;
+  priority?: boolean;
 }
 
-export function PageBanner({ src, alt }: PageBannerProps) {
+export function PageBanner({ src, alt, priority = false }: PageBannerProps) {
   return (
     <section className="bg-[var(--color-background)] pb-12 md:pb-16">
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-20">
-        <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.98 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        <Reveal
+          animation="fade-up"
           className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[var(--color-surface-hover)] shadow-[var(--shadow-lift)] sm:aspect-[16/9] sm:rounded-3xl md:aspect-[16/7]"
         >
           <motion.div
@@ -28,7 +27,7 @@ export function PageBanner({ src, alt }: PageBannerProps) {
               src={src}
               alt={alt}
               fill
-              priority
+              priority={priority}
               quality={90}
               sizes="(max-width: 1024px) 100vw, 1280px"
               className="object-cover object-center"
@@ -42,7 +41,7 @@ export function PageBanner({ src, alt }: PageBannerProps) {
                 "linear-gradient(0deg, rgba(47,125,92,0.15) 0%, transparent 100%)",
             }}
           />
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

@@ -50,7 +50,7 @@ export function ClosingCtaSection() {
           className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-3xl bg-[var(--color-surface-hover)] shadow-[var(--shadow-lift)]"
         >
           <Image
-            src="/images/hitaishi/lamp-symbol-hero.png"
+            src="/images/hitaishi/lamp-symbol-hero.webp"
             alt="The warmth of a wellwisher"
             fill
             sizes="(max-width: 768px) 80vw, 30vw"

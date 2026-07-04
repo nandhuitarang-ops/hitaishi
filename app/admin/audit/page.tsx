@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, LinkButton, Pill } from "@/components/ui";
 import { db } from "@/lib/db";
@@ -6,6 +7,11 @@ import { auditLog, users, profiles } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Audit Log — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
@@ -38,7 +44,7 @@ function severityFromAction(action: string): { tone: Tone; label: string } {
 }
 
 export default async function AdminAuditPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   const [[totalRow], entries] = await Promise.all([
     db.select({ c: count() }).from(auditLog),
@@ -69,6 +75,7 @@ export default async function AdminAuditPage() {
       pageCode="A.09 — AUDIT LOG"
       pageTitle="Audit log"
       pageSubtitle="Every admin action, redacted-but-traceable. Logs retained for 2 years."
+      user={user}
       actions={
         <div className="flex items-center gap-2">
           <button className="chip-ghost">Export CSV</button>

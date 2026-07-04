@@ -69,7 +69,10 @@ export async function POST(request: Request) {
       })
       .returning({ id: mentorRequests.id });
 
-    return NextResponse.json({ ok: true, requestId: result[0].id });
+    return NextResponse.json(
+      { ok: true, requestId: result[0].id },
+      { headers: { "Cache-Control": "private, max-age=0" } },
+    );
   } catch (err: any) {
     console.error("[/api/student/request-mentor] error:", err);
     return NextResponse.json(
@@ -102,7 +105,14 @@ export async function GET() {
       .orderBy(mentorRequests.createdAt)
       .limit(1);
 
-    return NextResponse.json({ ok: true, request: rows[0] || null });
+    return NextResponse.json(
+      { ok: true, request: rows[0] || null },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
+        },
+      },
+    );
   } catch (err: any) {
     console.error("[/api/student/request-mentor] GET error:", err);
     return NextResponse.json(

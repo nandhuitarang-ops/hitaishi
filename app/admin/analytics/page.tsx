@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Analytics — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 const ranges = ["7d", "30d", "90d", "All"];
 
@@ -18,7 +24,7 @@ const kpis = [
 ];
 
 export default async function AdminAnalyticsPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   return (
     <Shell
@@ -27,6 +33,7 @@ export default async function AdminAnalyticsPage() {
       pageCode="A.07 — ANALYTICS"
       pageTitle="Performance"
       pageSubtitle="The numbers that matter — revenue, retention, mentor performance."
+      user={user}
       actions={
         <div className="flex items-center gap-2">
           {ranges.map((r, i) => (

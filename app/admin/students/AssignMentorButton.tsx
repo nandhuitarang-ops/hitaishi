@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Modal, Field, Select } from "@/components/ui";
+import { Button, Field, Select } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 
 interface MentorItem {
   id: string;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -8,6 +9,11 @@ import { requireRole } from "@/lib/session";
 import { claimDoubt, answerDoubt } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Doubts — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 function subjectLabel(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -79,6 +85,7 @@ export default async function MentorDoubtDetailPage({
       pageCode="M.06a"
       pageTitle="Doubt detail"
       pageSubtitle={`From ${doubt.studentName ?? doubt.studentEmail}`}
+      user={user}
     >
       <Card className="mb-6">
         <CardBody>

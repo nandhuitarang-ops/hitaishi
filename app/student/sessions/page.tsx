@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Shell } from "@/components/Shell";
@@ -10,6 +11,11 @@ import { and, desc, eq, gt, gte, inArray, lt, or } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sessions — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 function fmtDateTime(d: Date) {
   return d.toLocaleString("en-GB", {
@@ -97,6 +103,7 @@ export default async function StudentSessionsPage() {
       pageCode="S.05 — SESSIONS"
       pageTitle="Your sessions"
       pageSubtitle="Upcoming and recent live sessions with your mentors."
+      user={user}
     >
       <PrivacyNoticeBanner />
       {liveNow ? (

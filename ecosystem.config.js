@@ -9,7 +9,7 @@ module.exports = {
       cwd: "/opt/hitaishi",
       instances: 2,
       exec_mode: "cluster",
-      max_memory_restart: "512M",
+      max_memory_restart: "1024M",
       env: { NODE_ENV: "production" },
       error_file: "/var/log/hitaishi/web.err.log",
       out_file: "/var/log/hitaishi/web.out.log",

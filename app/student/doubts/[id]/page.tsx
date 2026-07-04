@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -7,6 +8,11 @@ import { doubts, doubtAnswers, profiles, users } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Doubts — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 function subjectLabel(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -88,6 +94,7 @@ export default async function StudentDoubtDetailPage({
       active="doubts"
       pageCode="S.05a"
       pageTitle="Doubt detail"
+      user={user}
     >
       <Card className="mb-6">
         <CardBody>

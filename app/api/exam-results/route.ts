@@ -25,7 +25,11 @@ export async function GET() {
     .where(eq(examResults.userId, user.id))
     .orderBy(desc(examResults.createdAt));
 
-  return NextResponse.json(rows);
+  return NextResponse.json(rows, {
+    headers: {
+      "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -63,5 +67,8 @@ export async function POST(request: Request) {
     })
     .returning();
 
-  return NextResponse.json(row, { status: 201 });
+  return NextResponse.json(row, {
+    status: 201,
+    headers: { "Cache-Control": "private, max-age=0" },
+  });
 }

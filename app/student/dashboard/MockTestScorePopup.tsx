@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Modal, Button, Field, Input, Textarea } from "@/components/ui";
+import { Button, Field, Input, Textarea } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 
 interface Props {
   studentName: string;

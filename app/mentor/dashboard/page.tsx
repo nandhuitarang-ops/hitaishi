@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
@@ -13,6 +14,11 @@ import { and, asc, desc, eq, gte, lt, or, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Dashboard — Hitaishi Mentor",
+  robots: "noindex, nofollow",
+};
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -173,6 +179,7 @@ export default async function MentorDashboard() {
       pageCode="M.03 — DASHBOARD"
       pageTitle="Who needs you tonight."
       pageSubtitle="Triage queue, today's calendar, and your monthly earnings at a glance."
+      user={user}
       actions={
         <div className="flex items-center gap-2">
           <Pill tone="primary">● {summary.status}</Pill>

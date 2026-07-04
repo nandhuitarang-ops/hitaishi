@@ -18,7 +18,9 @@ function getDb() {
   let client = globalForDb.__hitaishi_pg;
   if (!client) {
     client = postgres(url, {
-      max: 5,
+      max: 15,
+      max_lifetime: 60 * 30,
+      idle_timeout: 30,
       ssl: "require",
       prepare: false,
       onnotice: () => {},
@@ -31,16 +33,8 @@ function getDb() {
   return dbInstance;
 }
 
-export const db = new Proxy({} as any, {
-  get(target, prop, receiver) {
-    const instance = getDb();
-    const value = Reflect.get(instance, prop, receiver);
-    if (typeof value === "function") {
-      return value.bind(instance);
-    }
-    return value;
-  },
-});
+const dbInstance = getDb();
+export { dbInstance as db };
 
 export { schema };
 

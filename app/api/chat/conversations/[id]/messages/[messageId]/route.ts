@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/session";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ conversationId: string; messageId: string }> }
+  { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
   try {
     const user = await getCurrentUser();

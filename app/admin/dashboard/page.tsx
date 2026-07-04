@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { formatLastSeen } from "@/lib/format";
@@ -20,12 +21,19 @@ import {
   getFlaggedConversations,
   getFailedWebhooks24h,
   getAllFailedWebhooks,
+  getLiveSessions,
+  getRecentAuditLog,
 } from "@/lib/admin-cache";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Dashboard — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
+
 export default async function AdminDashboardPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -54,33 +62,10 @@ export default async function AdminDashboardPage() {
     getFailedWebhooks24h(),
   ]);
 
-  // Realtime-ish data (no cache)
+  // Cached detail queries (15s revalidate)
   const [liveSessions, auditRows] = await Promise.all([
-    db
-      .select({
-        id: sessions.id,
-        title: sessions.title,
-        startedAt: sessions.startedAt,
-      })
-      .from(sessions)
-      .where(eq(sessions.status, "live"))
-      .orderBy(desc(sessions.startedAt))
-      .limit(10) as Promise<{ id: string; title: string | null; startedAt: Date | null }[]>,
-    db
-      .select({
-        id: auditLog.id,
-        action: auditLog.action,
-        targetType: auditLog.targetType,
-        targetId: auditLog.targetId,
-        createdAt: auditLog.createdAt,
-        actorName: profiles.fullName,
-        actorEmail: users.email,
-      })
-      .from(auditLog)
-      .leftJoin(users, eq(users.id, auditLog.actorId))
-      .leftJoin(profiles, eq(profiles.userId, auditLog.actorId))
-      .orderBy(desc(auditLog.createdAt))
-      .limit(10) as Promise<{ id: number; action: string; targetType: string | null; targetId: string | null; createdAt: Date | null; actorName: string | null; actorEmail: string | null }[]>,
+    getLiveSessions(),
+    getRecentAuditLog(),
   ]);
 
   // mentor_requests may not exist yet — wrap in try-catch
@@ -134,7 +119,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <Shell role="admin" active="dashboard" pageCode="A.02 — MASTER DASHBOARD" pageTitle="Control room" pageSubtitle="System health, alerts, and recent admin activity at a glance.">
+    <Shell role="admin" active="dashboard" pageCode="A.02 — MASTER DASHBOARD" pageTitle="Control room" pageSubtitle="System health, alerts, and recent admin activity at a glance." user={user}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {kpis.map((k) => (
           <Card key={k.label} className="p-5">

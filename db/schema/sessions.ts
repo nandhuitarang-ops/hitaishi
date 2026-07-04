@@ -75,6 +75,9 @@ export const sessions = pgTable(
   (t) => ({
     hostIdx: index("sessions_host_idx").on(t.hostId),
     scheduledIdx: index("sessions_scheduled_at_idx").on(t.scheduledAt),
+    statusIdx: index("idx_sessions_status").on(t.status),
+    statusScheduledIdx: index("idx_sessions_status_scheduled").on(t.status, t.scheduledAt),
+    hostScheduledIdx: index("idx_sessions_host_scheduled").on(t.hostId, t.scheduledAt),
   }),
 );
 

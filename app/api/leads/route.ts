@@ -10,7 +10,10 @@ const MAX_BODY_BYTES = 32 * 1024;
 
 export async function GET() {
   const leads = await readLeads();
-  return NextResponse.json({ leads });
+  return NextResponse.json(
+    { leads },
+    { headers: { "Cache-Control": "private, max-age=0" } },
+  );
 }
 
 export async function POST(request: Request) {
@@ -106,7 +109,13 @@ export async function POST(request: Request) {
         console.error("Failed to send institution welcome email:", e);
       });
     }
-    return NextResponse.json({ ok: true, lead }, { status: 201 });
+    return NextResponse.json(
+      { ok: true, lead },
+      {
+        status: 201,
+        headers: { "Cache-Control": "private, max-age=0" },
+      },
+    );
   } catch (err) {
     console.error("[/api/leads] persist failed", err);
     return NextResponse.json(
@@ -119,7 +128,10 @@ export async function POST(request: Request) {
 export async function DELETE() {
   try {
     await clearLeads();
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      { ok: true },
+      { headers: { "Cache-Control": "private, max-age=0" } },
+    );
   } catch (err) {
     console.error("[/api/leads] DELETE failed", err);
     return NextResponse.json({ ok: false, error: "Operation failed." }, { status: 500 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export default function TransitionLoader() {
@@ -18,7 +18,7 @@ export default function TransitionLoader() {
   useEffect(() => {
     if (!isLoading || !loadingStartTime) return;
 
-    const MIN_LOAD_TIME = 1500; // 1.5 seconds minimum delay
+    const MIN_LOAD_TIME = 300; // 300ms minimum delay
     const elapsedTime = Date.now() - loadingStartTime;
     const remainingTime = Math.max(0, MIN_LOAD_TIME - elapsedTime);
 

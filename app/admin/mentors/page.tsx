@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { Card, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
@@ -9,6 +10,11 @@ import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { MentorReviewActions } from "@/components/admin/MentorReviewActions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Mentors — Hitaishi Admin",
+  robots: "noindex, nofollow",
+};
 
 type Tone = "primary" | "coral" | "warn" | "error" | "neutral";
 
@@ -59,7 +65,7 @@ function docsFromVerification(
 }
 
 export default async function AdminMentorsPage() {
-  await requireRole("admin");
+  const user = await requireRole("admin");
 
   // Run queries in parallel
   const [pending, leadApps, active, [activeCountRow]] = await Promise.all([
@@ -201,7 +207,7 @@ export default async function AdminMentorsPage() {
   }
 
   return (
-    <Shell role="admin" active="mentors" pageCode="A.04 — MENTORS MANAGEMENT" pageTitle="Mentors" pageSubtitle="Verification queue and active mentor roster.">
+    <Shell role="admin" active="mentors" pageCode="A.04 — MENTORS MANAGEMENT" pageTitle="Mentors" pageSubtitle="Verification queue and active mentor roster." user={user}>
       <Card className="mb-6">
         <CardHeader meta={`VERIFICATION QUEUE · ${queue.length} PENDING`} title="Applications awaiting review" />
         {queue.length === 0 ? (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Shell } from "@/components/Shell";
@@ -8,6 +9,11 @@ import { getCurrentUser } from "@/lib/session";
 import { StudentProfileEditor } from "@/components/student/StudentProfileEditor";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Profile — Hitaishi Student",
+  robots: "noindex, nofollow",
+};
 
 const notificationPrefs = [
   { key: "wa", label: "WhatsApp updates", value: true },
@@ -72,6 +78,7 @@ export default async function StudentProfilePage() {
       pageCode="S.09 — PROFILE & PLAN"
       pageTitle="Your profile"
       pageSubtitle="Manage personal details, plan, and notification preferences."
+      user={user}
     >
       <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
         <Card>

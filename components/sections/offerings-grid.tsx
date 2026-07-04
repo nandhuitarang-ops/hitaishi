@@ -1,7 +1,5 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 
 export interface OfferingItem {
   title: string;
@@ -20,12 +18,10 @@ export function OfferingsGrid({ items }: OfferingsGridProps) {
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-20">
         <div className="grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
           {items.map((item, i) => (
-            <motion.article
+            <Reveal
+              as="article"
               key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              delay={(i % 3) * 80}
               className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-solid)]"
             >
               {item.image && (
@@ -47,7 +43,7 @@ export function OfferingsGrid({ items }: OfferingsGridProps) {
                   {item.body}
                 </p>
               </div>
-            </motion.article>
+            </Reveal>
           ))}
         </div>
       </div>
