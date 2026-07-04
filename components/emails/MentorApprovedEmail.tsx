@@ -80,15 +80,19 @@ export function MentorApprovedEmail({ fullName, dashboardLink, email, password, 
         )}
 
         {/* Signature & Seal */}
-        <div style={{ borderTop: "1px solid #f0f4f0", paddingTop: "24px", marginTop: "36px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ padding: "8px 16px", borderRadius: "30px", border: "1.5px solid #2f7d5c", backgroundColor: "#f0f8f3", color: "#2f7d5c", fontFamily: "Georgia, serif", fontSize: "11px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", textAlign: "center", lineHeight: "1.2", flexShrink: 0 }}>
-            Hitaishii Verified
-          </div>
-          <div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "bold", color: "#0b6445", fontStyle: "italic" }}>The Hitaishii Team</div>
-            <div style={{ fontSize: "12px", color: "#6f7a72" }}>IIT Alumni Mentorship Network</div>
-          </div>
-        </div>
+        <table border={0} cellPadding={0} cellSpacing={0} style={{ borderTop: "1px solid #f0f4f0", paddingTop: "24px", marginTop: "36px", width: "100%" }}>
+          <tr>
+            <td style={{ width: "155px", verticalAlign: "middle" }}>
+              <div style={{ padding: "8px 14px", borderRadius: "30px", border: "1.5px solid #2f7d5c", backgroundColor: "#f0f8f3", color: "#2f7d5c", fontFamily: "Georgia, serif", fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", textAlign: "center", lineHeight: "1.2" }}>
+                Hitaishii Verified
+              </div>
+            </td>
+            <td style={{ paddingLeft: "16px", verticalAlign: "middle" }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "bold", color: "#0b6445", fontStyle: "italic" }}>The Hitaishii Team</div>
+              <div style={{ fontSize: "12px", color: "#6f7a72" }}>IIT Alumni Mentorship Network</div>
+            </td>
+          </tr>
+        </table>
 
         {/* Footer */}
         <div style={{ borderTop: "1px solid #f0f4f0", paddingTop: "20px", marginTop: "30px", fontSize: "12px", color: "#6f7a72", lineHeight: "1.5" }}>
