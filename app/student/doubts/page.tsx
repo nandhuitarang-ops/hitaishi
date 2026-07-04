@@ -50,8 +50,9 @@ function isWaiting(s: string): boolean {
   return s === "open" || s === "waiting" || s === "pending" || s === "claimed";
 }
 
-function elapsedFrom(d: Date, now: Date = new Date()): string {
-  const diff = now.getTime() - d.getTime();
+function elapsedFrom(d: Date | string, now: Date = new Date()): string {
+  const dateObj = typeof d === "string" ? new Date(d) : d;
+  const diff = now.getTime() - dateObj.getTime();
   const min = Math.floor(diff / 60000);
   if (min < 1) return "just now";
   if (min < 60) return `${min}m`;

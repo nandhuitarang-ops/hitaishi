@@ -3,8 +3,9 @@ export function formatDayCounter(day: number, total: number): string {
   return `Day ${clamped} of ${total}`;
 }
 
-export function formatTimeUntil(target: Date, now: Date = new Date()): string {
-  const deltaMs = target.getTime() - now.getTime();
+export function formatTimeUntil(target: Date | string, now: Date = new Date()): string {
+  const targetDate = typeof target === "string" ? new Date(target) : target;
+  const deltaMs = targetDate.getTime() - now.getTime();
   const deltaMin = Math.floor(deltaMs / 60_000);
 
   if (deltaMin < -60) return "ended";
@@ -15,8 +16,9 @@ export function formatTimeUntil(target: Date, now: Date = new Date()): string {
   return "tomorrow";
 }
 
-export function formatLastSeen(when: Date, now: Date = new Date()): string {
-  const deltaS = Math.floor((now.getTime() - when.getTime()) / 1000);
+export function formatLastSeen(when: Date | string, now: Date = new Date()): string {
+  const whenDate = typeof when === "string" ? new Date(when) : when;
+  const deltaS = Math.floor((now.getTime() - whenDate.getTime()) / 1000);
   if (deltaS < 60) return "just now";
   const deltaMin = Math.floor(deltaS / 60);
   if (deltaMin < 60) return `${deltaMin}m ago`;
