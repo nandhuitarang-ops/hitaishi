@@ -18,6 +18,7 @@ import {
 } from "@/db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { requireRole } from "@/lib/session";
+import { ReplyBox } from "./ReplyBox";
 
 export const dynamic = "force-dynamic";
 
@@ -221,13 +222,7 @@ export default async function MentorStudentDetailPage({ params }: PageProps) {
                 ))
               )}
             </div>
-            <div className="border-t border-rule p-4 flex items-center gap-3">
-              <input
-                placeholder={`Reply to ${studentName}…`}
-                className="flex-1 rounded-input border border-rule-strong px-3 py-2 text-sm focus:outline-none focus:border-primary"
-              />
-              <button className="chip-cta">Send</button>
-            </div>
+            <ReplyBox conversationId={conversationId} studentName={studentName} />
           </Card>
 
           <Card>
