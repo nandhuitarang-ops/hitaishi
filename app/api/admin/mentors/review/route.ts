@@ -192,6 +192,7 @@ async function handleLeadReview(
       ok: true,
       message: "Mentor approved successfully.",
       emailMocked: "mock" in emailResult ? emailResult.mock : false,
+      emailError: emailResult.ok ? null : emailResult.error,
     });
   } else {
     // Reject lead — send rejection email with reason
@@ -207,6 +208,7 @@ async function handleLeadReview(
       ok: true,
       message: "Lead rejected. Rejection email sent.",
       emailMocked: "mock" in emailResult ? emailResult.mock : false,
+      emailError: emailResult.ok ? null : emailResult.error,
     });
   }
 }
@@ -273,6 +275,7 @@ async function handleVerificationReview(
       ok: true,
       message: "Mentor approved successfully.",
       emailMocked: "mock" in emailResult ? emailResult.mock : false,
+      emailError: emailResult.ok ? null : emailResult.error,
     });
   } else {
     await db
@@ -295,6 +298,7 @@ async function handleVerificationReview(
       ok: true,
       message: "Mentor rejected.",
       emailMocked: "mock" in emailResult ? emailResult.mock : false,
+      emailError: emailResult.ok ? null : emailResult.error,
     });
   }
 }

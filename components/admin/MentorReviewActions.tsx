@@ -34,6 +34,11 @@ export function MentorReviewActions({ id, source }: Props) {
         setLoading(null);
         return;
       }
+      if (data.emailError) {
+        setError("Database updated, but email failed: " + data.emailError);
+        setLoading(null);
+        return;
+      }
       setLoading(null);
       setDone(true);
       setEmailMocked(data.emailMocked === true);
