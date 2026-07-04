@@ -171,6 +171,15 @@ export function SiteFooter() {
             >
               Terms
             </Link>
+            <span aria-hidden="true" className="text-xs text-[var(--color-fg-subtle)]">
+              |
+            </span>
+            <Link
+              href="/policy/academic-integrity"
+              className="text-xs text-[var(--color-fg-subtle)] transition-colors hover:text-[var(--color-fg)]"
+            >
+              Academic Integrity
+            </Link>
           </div>
         </div>
       </div>
