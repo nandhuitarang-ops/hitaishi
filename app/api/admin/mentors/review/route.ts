@@ -179,6 +179,9 @@ async function handleLeadReview(
       console.error("Failed to send mentor approved email:", emailResult.error);
     }
 
+    // Delete processed lead from queue
+    await db.delete(leads).where(eq(leads.id, id));
+
     return NextResponse.json({
       ok: true,
       message: "Mentor approved successfully.",
@@ -191,7 +194,9 @@ async function handleLeadReview(
       console.error("Failed to send mentor rejection email:", emailResult.error);
     }
 
-    // Optionally mark the lead as reviewed — we can add a status field later
+    // Delete processed lead from queue
+    await db.delete(leads).where(eq(leads.id, id));
+
     return NextResponse.json({
       ok: true,
       message: "Lead rejected. Rejection email sent.",
