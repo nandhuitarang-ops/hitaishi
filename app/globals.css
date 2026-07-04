@@ -111,12 +111,11 @@ body {
   background: var(--color-background);
   color: var(--color-fg);
   font-family: var(--font-sans);
-  font-size: 17px;
+  font-size: 17.6px;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  font-size: 110%;
 }
 
 h1, h2, h3, .serif {
