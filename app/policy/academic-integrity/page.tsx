@@ -93,7 +93,7 @@ export default function AcademicIntegrityPage() {
           <section>
             <h2 className="font-serif text-xl text-ink mb-2">5. Reporting Academic Misconduct</h2>
             <p>
-              If you witness or suspect any form of academic dishonesty, cheating, or policy violation on the platform, please report it immediately to our support team at <a href="mailto:integrity@hitaishi.app" className="underline text-primary-deep hover:text-ink">integrity@hitaishi.app</a>. All reports are kept strictly confidential.
+              If you witness or suspect any form of academic dishonesty, cheating, or policy violation on the platform, please report it immediately to our support team at <a href="mailto:integrity@hitaishii.com" className="underline text-primary-deep hover:text-ink">integrity@hitaishii.com</a>. All reports are kept strictly confidential.
             </p>
           </section>
         </div>

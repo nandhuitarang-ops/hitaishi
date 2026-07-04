@@ -6,7 +6,7 @@ export interface ScanResult {
 }
 
 const EMAIL_RE = /([a-z0-9._%+-]+)@([a-z0-9.-]+\.[a-z]{2,})/gi;
-const PLATFORM_DOMAIN = /@hitaishi\.app$/i;
+const PLATFORM_DOMAIN = /@(hitaishi\.app|hitaishii\.com)$/i;
 const EMAIL_INTENT_RE = /\b(mail|email|contact|reach|write|send)\b/i;
 
 // Pre-extract digit runs (allowing spaces / dashes) then validate as an Indian mobile.

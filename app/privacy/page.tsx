@@ -52,7 +52,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-serif text-xl text-ink mb-2">6. Contact</h2>
-            <p>For privacy-related inquiries, contact us at privacy@hitaishi.app.</p>
+            <p>For privacy-related inquiries, contact us at privacy@hitaishii.com.</p>
           </section>
         </div>
       </div>
