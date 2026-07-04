@@ -6,8 +6,29 @@ import { users, profiles, mentorVerifications } from "@/db/schema";
 import { leads } from "@/db/schema/leads";
 import { sendMentorApprovedEmail, sendMentorRejectedEmail } from "@/lib/emails/email-service";
 import { hashPassword } from "@/lib/auth";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
+
+function generateLoginEmail(name: string): string {
+  const clean = name.toLowerCase().replace(/[^a-z0-9]/g, ".");
+  const normalized = clean.split(".").filter(Boolean).join(".");
+  return `${normalized}@hitaishii.com`;
+}
+
+async function getUniqueLoginEmail(name: string): Promise<string> {
+  let email = generateLoginEmail(name);
+  const [existing] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  if (!existing) return email;
+
+  const parts = email.split("@");
+  const rand = Math.floor(100 + Math.random() * 900);
+  return `${parts[0]}${rand}@${parts[1]}`;
+}
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
 
@@ -83,6 +104,8 @@ async function handleLeadReview(
 
     let userId: string;
     let generatedPassword: string | undefined = undefined;
+    let loginEmail = email;
+    let resetLink: string | undefined = undefined;
 
     if (existing) {
       // User exists — update role to mentor
@@ -92,18 +115,31 @@ async function handleLeadReview(
         .set({ role: "mentor", status: "active", updatedAt: new Date() })
         .where(eq(users.id, userId));
     } else {
-      // Generate a temporary password for new user
-      generatedPassword = Math.random().toString(36).slice(-10);
+      // Generate portal login email: first.last@hitaishii.com
+      loginEmail = await getUniqueLoginEmail(fullName);
+
+      // Generate structured password: [FirstName][GradYear][4RandomDigits]
+      const firstName = fullName.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "");
+      const gradYear = formData.jeeYear ? String(formData.jeeYear).trim() : "2026";
+      const randDigits = Math.floor(1000 + Math.random() * 9000);
+      generatedPassword = `${firstName}${gradYear}${randDigits}`;
       const passwordHash = await hashPassword(generatedPassword);
+
+      // Generate password reset token valid for 24 hours
+      const resetToken = crypto.randomUUID();
+      const resetExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      resetLink = `${APP_URL}/reset-password?token=${resetToken}`;
 
       const [inserted] = await db
         .insert(users)
         .values({
-          email,
+          email: loginEmail,
           role: "mentor",
           status: "active",
           phone: lead.phone ?? null,
           passwordHash,
+          passwordResetToken: resetToken,
+          passwordResetExpires: resetExpires,
         })
         .returning({ id: users.id });
 
@@ -113,7 +149,7 @@ async function handleLeadReview(
       userId = inserted.id;
     }
 
-    // Upsert profile with form data
+    // Upsert profile with form data and save personal email
     const [existingProfile] = await db
       .select({ userId: profiles.userId })
       .from(profiles)
@@ -125,6 +161,7 @@ async function handleLeadReview(
         .update(profiles)
         .set({
           fullName,
+          personalEmail: email, // save their personal email
           institute: (formData.institute as string) ?? null,
           city: (formData.city as string) ?? null,
           gender: (formData.gender as string) ?? null,
@@ -138,6 +175,7 @@ async function handleLeadReview(
         .values({
           userId,
           fullName,
+          personalEmail: email, // save their personal email
           institute: (formData.institute as string) ?? null,
           city: (formData.city as string) ?? null,
           gender: (formData.gender as string) ?? null,
@@ -178,9 +216,16 @@ async function handleLeadReview(
         });
     }
 
-    // Send approval email
+    // Send approval email to personal email
     const dashboardLink = `${APP_URL}/mentor/dashboard`;
-    const emailResult = await sendMentorApprovedEmail(email, fullName, dashboardLink, generatedPassword);
+    const emailResult = await sendMentorApprovedEmail(
+      email,
+      fullName,
+      dashboardLink,
+      generatedPassword,
+      loginEmail,
+      resetLink
+    );
     if (!emailResult.ok) {
       console.error("Failed to send mentor approved email:", emailResult.error);
     }

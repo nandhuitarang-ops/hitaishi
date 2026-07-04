@@ -46,6 +46,8 @@ export const users = pgTable(
     status: userStatusEnum("status").notNull().default("pending"),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    passwordResetToken: varchar("password_reset_token", { length: 255 }),
+    passwordResetExpires: timestamp("password_reset_expires", { withTimezone: true }),
     ...ts(),
   },
   (t) => ({
@@ -78,6 +80,7 @@ export const profiles = pgTable("profiles", {
   subjectsFocus: jsonb("subjects_focus"),
   institute: varchar("institute", { length: 120 }),
   graduationYear: integer("graduation_year"),
+  personalEmail: varchar("personal_email", { length: 255 }),
   onboardingStep: integer("onboarding_step").notNull().default(0),
   onboardingCompletedAt: timestamp("onboarding_completed_at", { withTimezone: true }),
   ...ts(),
