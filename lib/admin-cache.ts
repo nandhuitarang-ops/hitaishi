@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
-import { users, profiles, sessions, auditLog, mentorVerifications, webhookEvents, conversations, assignments } from "@/db/schema";
+import { users, profiles, sessions, auditLog, mentorVerifications, webhookEvents, conversations, assignments, mentorRequests, conversationParticipants } from "@/db/schema";
 import { and, count, desc, eq, gte, ilike, isNull, lt, or, sql } from "drizzle-orm";
 
 /* Admin cached queries — cache for 60s to cut repeated Supabase roundtrips */
@@ -110,6 +110,9 @@ export type StudentListItem = {
   fullName: string | null;
   lastLoginAt: Date | null;
   mentorName: string | null;
+  hasPendingRequest: boolean;
+  isFlagged: boolean;
+  requestCreatedAt: Date | null;
 };
 
 export const getStudentsList = unstable_cache(
@@ -143,6 +146,19 @@ export const getStudentsList = unstable_cache(
           fullName: profiles.fullName,
           lastLoginAt: users.lastLoginAt,
           mentorId: assignments.mentorId,
+          hasPendingRequest: sql<boolean>`EXISTS (
+            SELECT 1 FROM ${mentorRequests} 
+            WHERE ${mentorRequests.studentId} = ${users.id} AND ${mentorRequests.status} = 'pending'
+          )`,
+          requestCreatedAt: sql<Date | null>`(
+            SELECT MAX(${mentorRequests.createdAt}) FROM ${mentorRequests}
+            WHERE ${mentorRequests.studentId} = ${users.id}
+          )`,
+          isFlagged: sql<boolean>`EXISTS (
+            SELECT 1 FROM ${conversationParticipants}
+            INNER JOIN ${conversations} ON ${conversations.id} = ${conversationParticipants.conversationId}
+            WHERE ${conversationParticipants.userId} = ${users.id} AND ${conversations.flagged} = true
+          )`,
         })
         .from(users)
         .leftJoin(profiles, eq(profiles.userId, users.id))
@@ -151,11 +167,22 @@ export const getStudentsList = unstable_cache(
           and(eq(assignments.studentId, users.id), eq(assignments.status, "active"))
         )
         .where(filter)
-        .orderBy(desc(users.createdAt))
+        .orderBy(
+          desc(sql`EXISTS (
+            SELECT 1 FROM ${mentorRequests} 
+            WHERE ${mentorRequests.studentId} = ${users.id} AND ${mentorRequests.status} = 'pending'
+          )`),
+          desc(sql`(
+            SELECT MAX(${mentorRequests.createdAt}) FROM ${mentorRequests}
+            WHERE ${mentorRequests.studentId} = ${users.id}
+          )`),
+          desc(users.createdAt)
+        )
         .limit(limit)
         .offset(offset) as Promise<{
           id: string; email: string; phone: string | null;
           fullName: string | null; lastLoginAt: Date | null; mentorId: string | null;
+          hasPendingRequest: boolean; isFlagged: boolean; requestCreatedAt: Date | null;
         }[]>,
     ]);
 
@@ -183,6 +210,9 @@ export const getStudentsList = unstable_cache(
       fullName: r.fullName,
       lastLoginAt: r.lastLoginAt,
       mentorName: r.mentorId ? (mentorNames.get(r.mentorId) ?? null) : null,
+      hasPendingRequest: r.hasPendingRequest,
+      isFlagged: r.isFlagged,
+      requestCreatedAt: r.requestCreatedAt,
     }));
 
     return { rows, total: Number(allRow?.c ?? 0) };

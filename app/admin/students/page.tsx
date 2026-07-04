@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
-import { Card, LinkButton } from "@/components/ui";
+import { Card, LinkButton, Pill } from "@/components/ui";
 import { initials } from "@/lib/format";
 import { requireRole } from "@/lib/session";
 import { getStudentsList } from "@/lib/admin-cache";
@@ -121,7 +121,11 @@ export default async function AdminStudentsPage(props: {
                       <div className="flex items-center gap-3">
                         <div className="avatar !w-8 !h-8 !text-xs">{initials(name)}</div>
                         <div>
-                          <div className="font-medium">{name}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {name}
+                            {s.isFlagged && <Pill tone="error">Flagged</Pill>}
+                            {s.hasPendingRequest && <Pill tone="warn">Pending Request</Pill>}
+                          </div>
                           <div className="meta">{s.email}</div>
                         </div>
                       </div>
