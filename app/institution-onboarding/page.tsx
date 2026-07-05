@@ -23,7 +23,7 @@ export default function InstitutionOnboardingPage() {
       <main className="min-h-screen bg-surface text-ink relative overflow-hidden flex flex-col justify-between pt-8 pb-12">
         {/* Dynamic Glowing Accent Background Lights */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-          <div className="absolute -top-[250px] -left-[250px] w-[700px] h-[700px] rounded-full bg-emerald-500/10 blur-[130px]" />
+          <div className="absolute -top-[250px] -left-[250px] w-[700px] h-[700px] rounded-full bg-[var(--color-primary)]/10 blur-[130px]" />
           <div className="absolute -bottom-[250px] -right-[250px] w-[700px] h-[700px] rounded-full bg-secondary/8 blur-[130px]" />
         </div>
 

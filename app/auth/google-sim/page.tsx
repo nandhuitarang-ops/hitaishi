@@ -58,7 +58,7 @@ export default function GoogleSimPage() {
               fullName: name,
             },
           },
-          window.location.origin
+          "*"
         );
       }
       

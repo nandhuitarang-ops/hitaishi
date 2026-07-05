@@ -137,7 +137,7 @@ export function PageContent() {
                 href={`https://wa.me/${BRAND.whatsapp.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-7 py-3.5 text-sm font-medium text-[var(--color-on-primary)] shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] hover:bg-[var(--color-primary-hover)]"
+                className="inline-flex items-center gap-2 rounded-full bg-metallic-gold px-7 py-3.5 text-sm font-semibold text-[var(--color-on-primary)] shadow-lg shadow-[var(--color-primary-deep)]/25 transition-all hover:scale-[1.02]"
               >
                 <MessageCircle size={18} />
                 WhatsApp Us
@@ -174,7 +174,7 @@ export function PageContent() {
                 <Reveal
                   key={item.title}
                   delay={i * 100}
-                  className="group rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-7 transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-green-900/5"
+                  className="group rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-7 transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[var(--color-primary-deep)]/10"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] transition-colors duration-300 group-hover:bg-[var(--color-primary)] group-hover:text-[var(--color-on-primary)]">
                     <item.icon size={22} />
@@ -209,7 +209,7 @@ export function PageContent() {
 
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               {/* WhatsApp */}
-              <Reveal className="group relative flex flex-col items-center rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-8 text-center transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-green-900/5">
+              <Reveal className="group relative flex flex-col items-center rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-8 text-center transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[var(--color-primary-deep)]/10">
                 <a
                   href={`https://wa.me/${BRAND.whatsapp.replace(/\D/g, "")}`}
                   target="_blank"
@@ -237,7 +237,7 @@ export function PageContent() {
               {/* Email */}
               <Reveal
                 delay={100}
-                className="group flex flex-col items-center rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-8 text-center transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-green-900/5"
+                className="group flex flex-col items-center rounded-2xl border border-[var(--color-rule)] bg-[var(--color-surface-card)] p-8 text-center transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[var(--color-primary-deep)]/10"
               >
                 <a
                   href={`mailto:${BRAND.email}`}
@@ -487,7 +487,7 @@ export function PageContent() {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-8 py-3.5 text-sm font-medium text-[var(--color-on-primary)] shadow-lg shadow-green-900/20 transition-all hover:scale-[1.01] hover:bg-[var(--color-primary-hover)] active:scale-[0.99] sm:w-auto"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-metallic-gold px-8 py-3.5 text-sm font-semibold text-[var(--color-on-primary)] shadow-lg shadow-[var(--color-primary-deep)]/25 transition-all hover:scale-[1.01] active:scale-[0.99] sm:w-auto"
                     >
                       <Send size={16} />
                       Send Message

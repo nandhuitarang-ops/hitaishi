@@ -6,8 +6,8 @@ import { Card, CardBody, CardHeader, LinkButton, Pill, Button } from "@/componen
 import { initials, formatLastSeen } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
-import { users, profiles, assignments, mentorRequests } from "@/db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { users, profiles, assignments, mentorRequests, sessions, sessionParticipants } from "@/db/schema";
+import { and, desc, eq, sql, inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +69,64 @@ export default async function AdminStudentProfilePage({
   const request = requestRow[0] ?? null;
   const hasMentor = !!mentor;
   const hasPendingRequest = !!request;
+
+  // Fetch sessions student is a participant of
+  const studentSessionMappings = await db
+    .select({
+      sessionId: sessionParticipants.sessionId,
+    })
+    .from(sessionParticipants)
+    .where(eq(sessionParticipants.userId, studentId));
+  
+  const studentSessionIds = studentSessionMappings.map((sm: any) => sm.sessionId);
+  
+  let studentSessions: any[] = [];
+  const studentSessionParticipantsMap = new Map<string, any[]>();
+  
+  if (studentSessionIds.length) {
+    studentSessions = await db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        type: sessions.type,
+        status: sessions.status,
+        scheduledAt: sessions.scheduledAt,
+        durationMinutes: sessions.durationMinutes,
+        meetLink: sessions.meetLink,
+        startedAt: sessions.startedAt,
+        endedAt: sessions.endedAt,
+        hostName: profiles.fullName,
+        hostEmail: users.email,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(users.id, sessions.hostId))
+      .leftJoin(profiles, eq(profiles.userId, sessions.hostId))
+      .where(inArray(sessions.id, studentSessionIds))
+      .orderBy(desc(sessions.scheduledAt));
+
+    const participants = await db
+      .select({
+        sessionId: sessionParticipants.sessionId,
+        userId: users.id,
+        fullName: profiles.fullName,
+        email: users.email,
+        roleInSession: sessionParticipants.roleInSession,
+        joinedAt: sessionParticipants.joinedAt,
+        leftAt: sessionParticipants.leftAt,
+      })
+      .from(sessionParticipants)
+      .innerJoin(users, eq(users.id, sessionParticipants.userId))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(inArray(sessionParticipants.sessionId, studentSessionIds));
+    for (const p of participants) {
+      const arr = studentSessionParticipantsMap.get(p.sessionId) ?? [];
+      arr.push(p);
+      studentSessionParticipantsMap.set(p.sessionId, arr);
+    }
+  }
+
+  // Count of completed sessions attended by the student
+  const completedSessionsCount = studentSessions.filter((s: any) => s.status === "completed").length;
 
   return (
     <Shell
@@ -202,18 +260,110 @@ export default async function AdminStudentProfilePage({
           <div className="grid grid-cols-2 gap-4">
             <Card className="p-5">
               <div className="meta">Sessions attended</div>
-              <div className="font-serif text-3xl text-primary-deep mt-2">—</div>
+              <div className="font-serif text-3xl text-primary-deep mt-2">{completedSessionsCount}</div>
             </Card>
             <Card className="p-5">
               <div className="meta">Doubts resolved</div>
               <div className="font-serif text-3xl text-primary-deep mt-2">—</div>
             </Card>
           </div>
+
+          {/* Session History & Logs Card */}
+          <Card>
+            <CardHeader
+              meta="SESSION HISTORY & LOGS"
+              title={`Scheduled Sessions (${studentSessions.length})`}
+            />
+            {studentSessions.length === 0 ? (
+              <CardBody>
+                <p className="text-sm text-ink-soft text-center py-6">
+                  No sessions have been scheduled for this student yet.
+                </p>
+              </CardBody>
+            ) : (
+              <div className="divide-y divide-rule">
+                {studentSessions.map((s: any) => {
+                  const attendees = studentSessionParticipantsMap.get(s.id) ?? [];
+                  const studentLog = attendees.find((att: any) => att.userId === studentId);
+                  const hostName = s.hostName ?? s.hostEmail.split("@")[0];
+                  return (
+                    <div key={s.id} className="p-5 space-y-4">
+                      {/* Session Header */}
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <h4 className="font-serif text-base font-semibold text-ink">{s.title}</h4>
+                          <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-ink-soft">
+                            <span className="font-mono">{formatSessionTime(s.scheduledAt)}</span>
+                            <span>•</span>
+                            <span>{s.durationMinutes} mins</span>
+                            <span>•</span>
+                            <span>Host: {hostName}</span>
+                            <span>•</span>
+                            <Pill tone={s.status === "completed" ? "primary" : s.status === "live" ? "coral" : s.status === "cancelled" ? "error" : "warn"}>
+                              {s.status.toUpperCase()}
+                            </Pill>
+                          </div>
+                        </div>
+                        {s.meetLink && s.status !== "completed" && s.status !== "cancelled" && (
+                          <a
+                            href={s.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-button bg-primary text-white px-3 py-1.5 text-xs hover:bg-primary-deep transition-colors"
+                          >
+                            Join Call
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Participant Logs */}
+                      {studentLog && (
+                        <div className="bg-surface-elevated/40 rounded-card border border-rule p-3 flex flex-wrap items-center justify-between text-xs gap-3">
+                          <div className="font-medium text-ink">Your Attendance Log</div>
+                          <div className="flex items-center gap-4 text-ink-soft font-mono">
+                            <div>
+                              <span className="text-[10px] text-ink-faint mr-1">IN:</span>
+                              <span>{formatLogTime(studentLog.joinedAt)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-ink-faint mr-1">OUT:</span>
+                              <span>{formatLogTime(studentLog.leftAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     </Shell>
   );
 }
+
+const formatSessionTime = (d: Date | string) => {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(d));
+};
+
+const formatLogTime = (d: Date | string | null) => {
+  if (!d) return "—";
+  return new Intl.DateTimeFormat("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(new Date(d));
+};
 
 function ProfileField({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;

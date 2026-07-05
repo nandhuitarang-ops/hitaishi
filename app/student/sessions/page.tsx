@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { sessions, sessionParticipants, users, profiles } from "@/db/schema";
 import { and, desc, eq, gt, gte, inArray, lt, or } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/session";
+import { CompleteSessionButton } from "@/components/CompleteSessionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -108,17 +109,23 @@ export default async function StudentSessionsPage() {
       <PrivacyNoticeBanner />
       {liveNow ? (
         <Card className="border-secondary bg-secondary-soft/30">
-          <CardBody className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-[260px]">
-              <Pill tone="coral">● LIVE NOW</Pill>
-              <div className="font-serif text-xl mt-2">{liveNow.title}</div>
-              <div className="text-sm text-ink-soft mt-1">
-                {liveNow.hostName ?? liveNow.hostEmail.split("@")[0]} · {durationHms(liveNow.startedAt)}
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1 min-w-[260px]">
+                <Pill tone="coral">● LIVE NOW</Pill>
+                <div className="font-serif text-xl mt-2">{liveNow.title}</div>
+                <div className="text-sm text-ink-soft mt-1">
+                  {liveNow.hostName ?? liveNow.hostEmail.split("@")[0]} · {durationHms(liveNow.startedAt)}
+                </div>
               </div>
+              <LinkButton href={`/session/${liveNow.id}`} size="lg">
+                Join now →
+              </LinkButton>
             </div>
-            <LinkButton href={liveNow.meetLink || `/session/${liveNow.id}`} size="lg" target="_blank">
-              Join now →
-            </LinkButton>
+            <div className="border-t border-rule/35 pt-2 flex items-center justify-between text-xs text-ink-soft">
+              <span>Finished the meeting? Mark as done to leave feedback:</span>
+              <CompleteSessionButton sessionId={liveNow.id} sessionTitle={liveNow.title} role="student" />
+            </div>
           </CardBody>
         </Card>
       ) : nextUp && startingSoon && startingSoon.liveInMin <= 60 ? (

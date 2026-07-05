@@ -69,6 +69,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            if (window.location.hash && window.location.hash.includes('access_token=') && window.location.pathname !== '/auth/callback') {
+              window.location.href = '/auth/callback' + window.location.hash;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        ` }} />
       </head>
       <body className="min-h-screen flex flex-col">
         <script type="speculationrules" dangerouslySetInnerHTML={{

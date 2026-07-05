@@ -43,6 +43,7 @@ export interface SendMessageInput {
   conversationId: string;
   senderId: string;
   body: string;
+  isAdmin?: boolean;
 }
 
 export type SendMessageResult =
@@ -76,7 +77,7 @@ export async function sendMessage(
 
   const conv = await store.getConversationParticipants(input.conversationId);
   if (!conv) return { status: "not_found" };
-  if (!conv.participantIds.includes(input.senderId)) {
+  if (!input.isAdmin && !conv.participantIds.includes(input.senderId)) {
     return { status: "forbidden" };
   }
 

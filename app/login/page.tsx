@@ -15,7 +15,7 @@ const ROLE_CONFIG: Record<string, { title: string; subtitle: string; accent: str
   student: {
     title: "Student Login",
     subtitle: "Hey, Enter your details to sign in and connect with your IITian mentor.",
-    accent: "from-primary to-emerald-400",
+    accent: "from-primary to-amber-400",
     showGoogle: true,
   },
   mentor: {

@@ -116,7 +116,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   const result = await sendMessage(
-    { conversationId: id, senderId: user.id, body: parsed.data.body },
+    { conversationId: id, senderId: user.id, body: parsed.data.body, isAdmin: user.role === "admin" },
     store,
     realtimePublisher,
   );
@@ -163,7 +163,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .from(messages)
     .where(eq(messages.conversationId, id))
     .orderBy(messages.createdAt)
-    .limit(50);
+    .limit(200);
 
   return NextResponse.json(
     { items: rows },

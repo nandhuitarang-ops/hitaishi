@@ -46,12 +46,12 @@ export function SiteFooter() {
         aria-hidden="true"
       >
         <Image
-          src="/images/logo-watermark.svg"
+          src="/images/logo-icon-transparent.png"
           alt=""
-          width={2200}
-          height={550}
-          className="h-auto w-full max-w-[1600px] md:max-w-[2200px]"
-          style={{ opacity: 0.1 }}
+          width={400}
+          height={400}
+          className="h-auto w-full max-w-[250px] md:max-w-[350px] object-contain"
+          style={{ opacity: 0.04 }}
           priority={false}
         />
       </div>

@@ -5,8 +5,8 @@ import { Card, CardBody, CardHeader, LinkButton, Pill } from "@/components/ui";
 import { initials, formatLastSeen } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/session";
-import { users, profiles, assignments, mentorVerifications } from "@/db/schema";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { users, profiles, assignments, mentorVerifications, sessions, sessionParticipants } from "@/db/schema";
+import { and, desc, eq, isNull, inArray } from "drizzle-orm";
 import { DeleteMentorButton } from "./DeleteMentorButton";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +89,47 @@ export default async function AdminMentorProfilePage({ params }: PageProps) {
   const docs = verifRow
     ? docsFromVerification({ documents: verifRow.documents, linkedinUrl: verifRow.linkedinUrl })
     : null;
+
+  // Fetch mentor sessions
+  const mentorSessions = await db
+    .select({
+      id: sessions.id,
+      title: sessions.title,
+      type: sessions.type,
+      status: sessions.status,
+      scheduledAt: sessions.scheduledAt,
+      durationMinutes: sessions.durationMinutes,
+      meetLink: sessions.meetLink,
+      startedAt: sessions.startedAt,
+      endedAt: sessions.endedAt,
+    })
+    .from(sessions)
+    .where(eq(sessions.hostId, mentorId))
+    .orderBy(desc(sessions.scheduledAt));
+
+  const mentorSessionIds = mentorSessions.map((s: any) => s.id);
+  const mentorSessionParticipantsMap = new Map<string, any[]>();
+  if (mentorSessionIds.length) {
+    const participants = await db
+      .select({
+        sessionId: sessionParticipants.sessionId,
+        userId: users.id,
+        fullName: profiles.fullName,
+        email: users.email,
+        roleInSession: sessionParticipants.roleInSession,
+        joinedAt: sessionParticipants.joinedAt,
+        leftAt: sessionParticipants.leftAt,
+      })
+      .from(sessionParticipants)
+      .innerJoin(users, eq(users.id, sessionParticipants.userId))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
+      .where(inArray(sessionParticipants.sessionId, mentorSessionIds));
+    for (const p of participants) {
+      const arr = mentorSessionParticipantsMap.get(p.sessionId) ?? [];
+      arr.push(p);
+      mentorSessionParticipantsMap.set(p.sessionId, arr);
+    }
+  }
 
   return (
     <Shell
@@ -236,11 +277,125 @@ export default async function AdminMentorProfilePage({ params }: PageProps) {
               </CardBody>
             </Card>
           )}
+
+          {/* Session History & Logs Card */}
+          <Card>
+            <CardHeader
+              meta="SESSION HISTORY & LOGS"
+              title={`Sessions Hosted (${mentorSessions.length})`}
+            />
+            {mentorSessions.length === 0 ? (
+              <CardBody>
+                <p className="text-sm text-ink-soft text-center py-6">
+                  No sessions have been scheduled by this mentor yet.
+                </p>
+              </CardBody>
+            ) : (
+              <div className="divide-y divide-rule">
+                {mentorSessions.map((s: any) => {
+                  const attendees = mentorSessionParticipantsMap.get(s.id) ?? [];
+                  return (
+                    <div key={s.id} className="p-5 space-y-4">
+                      {/* Session Header */}
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <h4 className="font-serif text-base font-semibold text-ink">{s.title}</h4>
+                          <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-ink-soft">
+                            <span className="font-mono">{formatSessionTime(s.scheduledAt)}</span>
+                            <span>•</span>
+                            <span>{s.durationMinutes} mins</span>
+                            <span>•</span>
+                            <Pill tone={s.type === "group" ? "primary" : "neutral"}>
+                              {s.type === "group" ? "Group" : "1-on-1"}
+                            </Pill>
+                            <span>•</span>
+                            <Pill tone={s.status === "completed" ? "primary" : s.status === "live" ? "coral" : s.status === "cancelled" ? "error" : "warn"}>
+                              {s.status.toUpperCase()}
+                            </Pill>
+                          </div>
+                        </div>
+                        {s.meetLink && s.status !== "completed" && s.status !== "cancelled" && (
+                          <a
+                            href={s.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-button bg-primary text-white px-3 py-1.5 text-xs hover:bg-primary-deep transition-colors"
+                          >
+                            Join Call
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Participant Logs */}
+                      <div className="bg-surface-elevated/40 rounded-card border border-rule p-3">
+                        <div className="text-xs font-mono font-bold tracking-wider text-ink-soft mb-2.5 uppercase">
+                          Attendee Logs (Join/Leave)
+                        </div>
+                        {attendees.length === 0 ? (
+                          <div className="text-xs text-ink-soft italic">No participants invited.</div>
+                        ) : (
+                          <ul className="space-y-2">
+                            {attendees.map((att: any) => {
+                              const name = att.fullName ?? att.email.split("@")[0];
+                              return (
+                                <li key={att.userId} className="flex items-center justify-between text-xs gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="avatar !w-6 !h-6 !text-[10px]">
+                                      {initials(name)}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-ink">{name}</span>
+                                      <span className="text-ink-soft text-[10px] ml-1.5 font-mono">({att.email})</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-ink-soft font-mono">
+                                    <div>
+                                      <span className="text-[10px] text-ink-faint mr-1">IN:</span>
+                                      <span>{formatLogTime(att.joinedAt)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-[10px] text-ink-faint mr-1">OUT:</span>
+                                      <span>{formatLogTime(att.leftAt)}</span>
+                                    </div>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     </Shell>
   );
 }
+
+const formatSessionTime = (d: Date | string) => {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(d));
+};
+
+const formatLogTime = (d: Date | string | null) => {
+  if (!d) return "—";
+  return new Intl.DateTimeFormat("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(new Date(d));
+};
 
 function ProfileField({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;

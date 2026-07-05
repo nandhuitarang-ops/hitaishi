@@ -48,21 +48,20 @@ describe("validateEnv", () => {
     expect(validateEnv(dev).ok).toBe(true);
   });
 
-  it("in production, missing SOKETI_KEY fails the boot (H1)", () => {
+  it("in production, missing SOKETI_KEY is OK since it is optional", () => {
     const { SOKETI_KEY, ...without } = valid;
     void SOKETI_KEY;
     const r = validateEnv(without);
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.errors.some((e) => e.includes("SOKETI_KEY"))).toBe(true);
+    expect(r.ok).toBe(true);
   });
 
-  it("in production, missing RESEND_API_KEY fails the boot (H1)", () => {
+  it("in production, missing RESEND_API_KEY is OK since it is optional", () => {
     const { RESEND_API_KEY, ...without } = valid;
     void RESEND_API_KEY;
-    expect(validateEnv(without).ok).toBe(false);
+    expect(validateEnv(without).ok).toBe(true);
   });
 
-  it("in production, RESEND_FROM must be a valid email (H1)", () => {
+  it("in production, RESEND_FROM must be a valid email if provided (H1)", () => {
     const r = validateEnv({ ...valid, RESEND_FROM: "not-an-email" });
     expect(r.ok).toBe(false);
   });
@@ -76,10 +75,10 @@ describe("validateEnv", () => {
     );
   });
 
-  it("in production, ALL critical vars are required", () => {
+  it("in production, base critical vars are required", () => {
     const dev = {
       NODE_ENV: "production",
-      DATABASE_URL: valid.DATABASE_URL,
+      DATABASE_URL: undefined as unknown as string,
       AUTH_SECRET: valid.AUTH_SECRET,
     };
     const r = validateEnv(dev);

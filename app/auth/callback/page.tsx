@@ -43,8 +43,16 @@ export default function AuthCallbackPage() {
         if (window.opener) {
           setStatus("Signed in successfully!");
           window.opener.postMessage(
-            { type: "GOOGLE_AUTH_SUCCESS", role: data.role },
-            window.location.origin
+            {
+              type: "GOOGLE_AUTH_SUCCESS",
+              role: data.role,
+              user: {
+                email: user.email,
+                fullName: user.user_metadata?.full_name || user.email?.split("@")[0],
+                avatarUrl: user.user_metadata?.avatar_url || "",
+              },
+            },
+            "*"
           );
           window.close();
         } else {
@@ -57,7 +65,7 @@ export default function AuthCallbackPage() {
         if (window.opener) {
           window.opener.postMessage(
             { type: "GOOGLE_AUTH_FAILURE", error: err.message },
-            window.location.origin
+            "*"
           );
         } else {
           window.location.href = "/login?error=" + encodeURIComponent(err.message);

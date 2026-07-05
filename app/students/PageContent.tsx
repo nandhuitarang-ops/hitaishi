@@ -240,10 +240,10 @@ function QuoteStrip() {
     <section className="bg-[var(--color-background-alt)] py-20 md:py-28">
       <Reveal
         as="blockquote"
-        className="mx-auto max-w-3xl px-6 text-center md:px-12"
+        className="mx-auto max-w-5xl px-6 text-center md:px-12"
       >
         <div className="mx-auto mb-6 h-10 w-1 rounded-full bg-[var(--color-primary)]" />
-        <p className="font-serif text-2xl italic leading-snug text-[var(--color-fg)] md:text-3xl lg:text-[2.25rem] lg:leading-[1.25]">
+        <p className="font-serif text-3xl font-semibold italic leading-snug text-[var(--color-fg)] md:text-4xl lg:text-[2.6rem] lg:leading-[1.2]">
           &ldquo;{STUDENTS_PAGE.pullQuote}&rdquo;
         </p>
       </Reveal>
@@ -359,13 +359,13 @@ function CtaBanner() {
         >
           <Link
             href="/student-onboarding"
-            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] hover:bg-[var(--color-sky-hover)]"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-metallic-gold px-8 py-3.5 text-sm font-semibold text-[var(--color-on-primary)] shadow-lg shadow-[var(--color-primary-deep)]/25 transition-all hover:scale-[1.02]"
           >
             Sign Up & Get Matched <span aria-hidden>→</span>
           </Link>
           <Link
             href="/#pricing"
-            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--color-rule-strong)] px-8 py-3.5 text-sm font-medium text-[var(--color-fg)] transition-all hover:scale-[1.02] hover:bg-[var(--color-surface-hover)]"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--color-primary)] px-8 py-3.5 text-sm font-semibold text-[var(--color-primary-deep)] transition-all hover:scale-[1.02] hover:bg-[var(--color-primary-soft)]/20"
           >
             View Plans & Pricing
           </Link>

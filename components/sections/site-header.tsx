@@ -38,14 +38,14 @@ export function SiteHeader() {
           className="pl-4 pr-3 py-1.5 flex items-center gap-2"
         >
           <Image
-            src="/images/logo.svg"
+            src="/images/logo-icon-transparent.png"
             alt="Hitaishii"
-            width={22}
-            height={22}
-            className="h-5 w-5"
+            width={24}
+            height={24}
+            className="h-6 w-auto object-contain"
             priority
           />
-          <span className="font-serif text-sm font-bold text-[var(--color-fg)] tracking-tight">
+          <span className="font-serif text-sm font-extrabold text-metallic-gold tracking-tight">
             hitaishii
           </span>
         </Link>
@@ -69,7 +69,7 @@ export function SiteHeader() {
         {/* Single primary CTA */}
         <Link
           href={PRIMARY_CTAS.student.href}
-          className="ml-0.5 hidden rounded-full bg-[var(--color-sky)] px-3.5 py-1 text-xs font-medium text-white transition-all hover:bg-[var(--color-sky-hover)] md:inline-flex md:items-center md:gap-1"
+          className="ml-0.5 hidden rounded-full bg-metallic-gold px-3.5 py-1 text-xs font-semibold text-[var(--color-on-primary)] transition-all hover:scale-[1.02] shadow-sm md:inline-flex md:items-center md:gap-1"
         >
           {PRIMARY_CTAS.student.label} <span aria-hidden className="text-[10px]">→</span>
         </Link>
@@ -115,7 +115,7 @@ export function SiteHeader() {
             <Link
               href={PRIMARY_CTAS.student.href}
               onClick={() => setIsMenuOpen(false)}
-              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-5 py-3 text-sm font-medium text-white"
+              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-metallic-gold px-5 py-3 text-sm font-semibold text-[var(--color-on-primary)] shadow-sm"
             >
               {PRIMARY_CTAS.student.label} <span aria-hidden>→</span>
             </Link>

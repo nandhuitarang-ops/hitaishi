@@ -397,13 +397,13 @@ function CtaBanner() {
         >
           <Link
             href="/student-onboarding"
-            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] hover:bg-[var(--color-sky-hover)]"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-metallic-gold px-8 py-3.5 text-sm font-semibold text-[var(--color-on-primary)] shadow-lg shadow-[var(--color-primary-deep)]/25 transition-all hover:scale-[1.02]"
           >
             Sign Up & Get Matched <span aria-hidden>→</span>
           </Link>
           <Link
             href="/#pricing"
-            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--color-rule-strong)] px-8 py-3.5 text-sm font-medium text-[var(--color-fg)] transition-all hover:scale-[1.02] hover:bg-[var(--color-surface-hover)]"
+            className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--color-primary)] px-8 py-3.5 text-sm font-semibold text-[var(--color-primary-deep)] transition-all hover:scale-[1.02] hover:bg-[var(--color-primary-soft)]/20"
           >
             View Plans & Pricing
           </Link>

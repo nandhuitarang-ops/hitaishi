@@ -21,29 +21,31 @@ export default async function AdminChatPage() {
   if (!user) redirect("/login");
   if (user.role !== "admin") redirect(`/${user.role}/dashboard`);
 
-  const myParticipations = await db
-    .select({ convId: conversationParticipants.conversationId, lastReadAt: conversationParticipants.lastReadAt })
-    .from(conversationParticipants)
-    .where(eq(conversationParticipants.userId, user.id));
+  const allConvs = await db.select().from(conversations);
 
-  if (myParticipations.length === 0) {
+  if (allConvs.length === 0) {
     return (
-      <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat" pageSubtitle="Conversations with users." user={user}>
+      <Shell role="admin" active="chat" pageCode="A.04 — CHAT" pageTitle="Chat Monitor" pageSubtitle="No conversations have been started yet." user={user}>
         <PrivacyNoticeBanner />
         <Card>
           <CardBody>
-            <p className="text-sm text-ink-soft text-center py-10">No conversations yet.</p>
+            <p className="text-sm text-ink-soft text-center py-10">No conversations logged yet on the platform.</p>
           </CardBody>
         </Card>
       </Shell>
     );
   }
 
-  const convIds = (myParticipations as any[]).map((c) => c.convId);
+  const convIds = (allConvs as any[]).map((c: any) => c.id);
+
+  const myParticipations = await db
+    .select({ convId: conversationParticipants.conversationId, lastReadAt: conversationParticipants.lastReadAt })
+    .from(conversationParticipants)
+    .where(eq(conversationParticipants.userId, user.id));
+
   const lastReadMap = new Map<string, Date>((myParticipations as any[]).map((c) => [c.convId, c.lastReadAt]));
 
-  const [convMeta, allParticipants, latestMsgs, messageRows] = await Promise.all([
-    db.select().from(conversations).where(inArray(conversations.id, convIds)),
+  const [allParticipants, latestMsgs, messageRows] = await Promise.all([
     db
       .select({
         conversationId: conversationParticipants.conversationId,
@@ -84,9 +86,19 @@ export default async function AdminChatPage() {
       .limit(50),
   ]);
 
-  const initialConvs: ConvListItem[] = (convMeta as any[]).map((c) => {
-    const others = (allParticipants as any[]).filter((p) => p.conversationId === c.id && p.userId !== user.id);
-    const other = others[0];
+  const initialConvs: ConvListItem[] = (allConvs as any[]).map((c: any) => {
+    const participantsList = (allParticipants as any[]).filter((p) => p.conversationId === c.id);
+    const student = participantsList.find((p) => p.role === "student");
+    const mentor = participantsList.find((p) => p.role === "mentor");
+    const other = student || mentor || participantsList[0];
+
+    let otherName = "Empty Chat";
+    if (student && mentor) {
+      otherName = `${student.fullName || student.email.split("@")[0]} & ${mentor.fullName || mentor.email.split("@")[0]}`;
+    } else if (participantsList.length > 0) {
+      otherName = participantsList.map(p => p.fullName || p.email.split("@")[0]).join(", ");
+    }
+
     const lastReadAt = lastReadMap.get(c.id);
     const unread = (latestMsgs as any[]).filter(
       (m) => m.conversationId === c.id && m.senderId !== user.id && (!lastReadAt || new Date(m.createdAt) > lastReadAt),
@@ -95,7 +107,7 @@ export default async function AdminChatPage() {
     return {
       id: c.id,
       otherId: other?.userId ?? null,
-      otherName: other?.fullName ?? other?.email?.split("@")[0] ?? "Unknown",
+      otherName,
       otherEmail: other?.email ?? "",
       otherRole: other?.role ?? null,
       otherInstitute: other?.institute ?? null,

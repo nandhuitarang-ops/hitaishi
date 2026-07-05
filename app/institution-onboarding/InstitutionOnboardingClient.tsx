@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Stepper, Card, CardBody, Field, Input, Select, Button, Pill } from "@/components/ui";
 
 const STEPS = [
-  { label: "Details", emoji: "🏢", color: "#059669" },
+  { label: "Details", emoji: "🏢", color: "#F4CA3E" },
   { label: "Cohort", emoji: "👥", color: "#7c3aed" },
   { label: "Goals", emoji: "🎯", color: "#2563eb" },
 ];

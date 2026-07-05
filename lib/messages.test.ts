@@ -58,6 +58,17 @@ describe("sendMessage", () => {
     expect(pub.events).toHaveLength(0);
   });
 
+  it("allows non-participants if they are admin", async () => {
+    const r = await sendMessage(
+      { conversationId: CONV_ID, senderId: "user-Z", body: "admin override", isAdmin: true },
+      store,
+      pub,
+    );
+    expect(r.status).toBe("sent");
+    expect(store.state.messages).toHaveLength(1);
+    expect(pub.events).toHaveLength(1);
+  });
+
   it("rejects empty / whitespace bodies", async () => {
     const r = await sendMessage(
       { conversationId: CONV_ID, senderId: SENDER, body: "   " },

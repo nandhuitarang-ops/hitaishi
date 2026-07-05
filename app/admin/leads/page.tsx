@@ -20,7 +20,7 @@ const TYPE_LABEL: Record<Lead["type"], string> = {
 
 const TYPE_TONE: Record<Lead["type"], string> = {
   "student-inquiry": "bg-amber-50 text-amber-800 border-amber-200",
-  "mentor-application": "bg-emerald-50 text-emerald-800 border-emerald-200",
+  "mentor-application": "bg-[var(--color-primary-soft)]/20 text-[var(--color-primary-deep)] border-[var(--color-primary)]/30",
   "institution-partner": "bg-indigo-50 text-indigo-800 border-indigo-200",
   general: "bg-slate-100 text-slate-700 border-slate-200",
 };

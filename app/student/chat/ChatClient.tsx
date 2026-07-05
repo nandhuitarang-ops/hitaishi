@@ -34,7 +34,7 @@ function fmtListTime(d: string | null): string {
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   const isYesterday = dt.toDateString() === yesterday.toDateString();
-  const time = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const time = dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   if (sameDay) return time;
   if (isYesterday) return "Yesterday";
   return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
@@ -42,7 +42,7 @@ function fmtListTime(d: string | null): string {
 
 function fmtBubbleTime(d: string): string {
   const dt = new Date(d);
-  return dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 function fmtLastSeen(d: string | null): string {
@@ -144,22 +144,34 @@ export function ChatClient({
     return unsub;
   }, [activeId]);
 
+  const sendingRef = useRef(false);
+  const fetchMessagesRef = useRef<() => void>(() => {});
+
   useEffect(() => {
     if (!activeId) return;
-    fetch(`/api/chat/conversations/${activeId}/messages`)
-      .then((r) => r.json())
-      .then((data) => {
-        setMessagesByConv((prev) => {
-          const existing = prev[activeId] ?? [];
-          const fetched = (data.items || []).map((m: any) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: m.createdAt }));
-          // Merge: keep existing messages (especially pending/optimistic ones)
-          // and only add fetched messages that aren't already present
-          const existingIds = new Set(existing.map((m) => m.id));
-          const merged = [...existing, ...fetched.filter((m: Msg) => !existingIds.has(m.id))];
-          return { ...prev, [activeId]: merged };
-        });
-      })
-      .catch(() => {});
+    let cancelled = false;
+
+    function fetchMessages() {
+      if (sendingRef.current) return;
+      fetch(`/api/chat/conversations/${activeId}/messages`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (cancelled || sendingRef.current) return;
+          setMessagesByConv((prev) => {
+            const existing = prev[activeId!] ?? [];
+            const fetched: Msg[] = (data.items || []).map((m: any) => ({ id: m.id, senderId: m.senderId, body: m.body, createdAt: m.createdAt }));
+            const fetchedIds = new Set(fetched.map((m) => m.id));
+            const pendingOnly = existing.filter((m) => m.pending && !fetchedIds.has(m.id));
+            return { ...prev, [activeId!]: [...fetched, ...pendingOnly] };
+          });
+        })
+        .catch(() => {});
+    }
+
+    fetchMessagesRef.current = fetchMessages;
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 4000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [activeId]);
 
   useEffect(() => {
@@ -242,6 +254,7 @@ export function ChatClient({
     const body = draft.trim();
     if (!body || !activeId || sending) return;
     setSending(true);
+    sendingRef.current = true;
     const optimistic: Msg = {
       id: `tmp-${Date.now()}`,
       senderId: userId,
@@ -272,6 +285,8 @@ export function ChatClient({
       setMessagesByConv((prev) => ({ ...prev, [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== optimistic.id) }));
     } finally {
       setSending(false);
+      sendingRef.current = false;
+      setTimeout(() => fetchMessagesRef.current(), 300);
     }
   }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { logoutAction } from "@/app/login/actions";
 
 type StudentNav =
@@ -7,7 +8,8 @@ type StudentNav =
   | "sessions"
   | "doubts"
   | "resources"
-  | "profile";
+  | "profile"
+  | "feedback";
 type MentorNav =
   | "dashboard"
   | "students"
@@ -15,7 +17,8 @@ type MentorNav =
   | "doubts"
   | "sessions"
   | "calendar"
-  | "resources";
+  | "resources"
+  | "feedback";
 type AdminNav =
   | "dashboard"
   | "students"
@@ -24,7 +27,8 @@ type AdminNav =
   | "sessions"
   | "analytics"
   | "settings"
-  | "audit";
+  | "audit"
+  | "feedback";
 
 interface ShellProps {
   role: "student" | "mentor" | "admin";
@@ -45,6 +49,7 @@ const NAV = {
     { key: "doubts", label: "Doubts", href: "/student/doubts", icon: "?" },
     { key: "resources", label: "Resources", href: "/student/resources", icon: "❒" },
     { key: "profile", label: "Profile", href: "/student/profile", icon: "◉" },
+    { key: "feedback", label: "Feedback", href: "/student/feedback", icon: "★" },
   ],
   mentor: [
     { key: "dashboard", label: "Dashboard", href: "/mentor/dashboard", icon: "◐" },
@@ -54,6 +59,7 @@ const NAV = {
     { key: "sessions", label: "Sessions", href: "/mentor/sessions", icon: "▢" },
     { key: "calendar", label: "Calendar", href: "/mentor/calendar", icon: "▦" },
     { key: "resources", label: "Resources", href: "/mentor/resources", icon: "❒" },
+    { key: "feedback", label: "Student Feedback", href: "/mentor/feedback", icon: "★" },
   ],
   admin: [
     { key: "dashboard", label: "Overview", href: "/admin/dashboard", icon: "◐" },
@@ -64,6 +70,7 @@ const NAV = {
     { key: "analytics", label: "Analytics", href: "/admin/analytics", icon: "▦" },
     { key: "settings", label: "Settings", href: "/admin/settings", icon: "⚙" },
     { key: "audit", label: "Audit Log", href: "/admin/audit", icon: "📜" },
+    { key: "feedback", label: "Feedback Log", href: "/admin/feedback", icon: "★" },
   ],
 } as const;
 
@@ -93,14 +100,21 @@ export async function Shell({
           className="hidden md:flex flex-col justify-between bg-surface-card border-r border-rule"
         >
           <div>
-            <div className="px-6 py-6 border-b border-rule">
+            <div className="px-6 py-5 border-b border-rule">
               <Link
                 href={`/${role}/dashboard`}
-                className="font-serif text-2xl font-medium text-primary-deep"
+                className="block overflow-hidden"
               >
-                Hitaishi
+                <Image
+                  src="/images/logo-transparent-v2.png"
+                  alt="Hitaishi Logo"
+                  width={192}
+                  height={80}
+                  className="w-full h-auto object-contain max-h-20 scale-[1.08] origin-center"
+                  priority
+                />
               </Link>
-              <div className="meta mt-1">{ROLE_LABEL[role]} portal</div>
+              <div className="meta mt-2 text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-deep)]">{ROLE_LABEL[role]} portal</div>
             </div>
             <nav className="px-3 py-4 flex flex-col gap-0.5">
               {items.map((item) => {

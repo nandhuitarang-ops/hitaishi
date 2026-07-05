@@ -40,12 +40,32 @@ export function SessionRoomClient({
   mentorName,
   currentUserId,
 }: Props) {
+  const [currentStatus, setCurrentStatus] = useState(status);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (currentStatus === "live") return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/session/${sessionId}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === "live") {
+            setCurrentStatus("live");
+            clearInterval(interval);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [sessionId, currentStatus]);
 
   useEffect(() => {
     if (!UUID_RE.test(sessionId)) {
@@ -179,7 +199,7 @@ export function SessionRoomClient({
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0">
       <section className="p-6 flex flex-col gap-4 overflow-y-auto">
-        {meetLink && status === "live" ? (
+        {meetLink && currentStatus === "live" ? (
           <div className="bg-[#16241d] rounded-card border border-white/10 aspect-video relative overflow-hidden">
             <iframe
               src={meetLink}

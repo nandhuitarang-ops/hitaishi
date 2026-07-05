@@ -22,13 +22,13 @@ export function ClosingCtaSection() {
           <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <Link
               href={PRIMARY_CTAS.student.href}
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-[var(--color-sky)] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-sky-hover)] sm:justify-start"
+              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-metallic-gold px-6 py-3 text-sm font-semibold text-[var(--color-on-primary)] transition-all hover:scale-[1.01] shadow-sm sm:justify-start"
             >
               Get Your Mentor <span aria-hidden>→</span>
             </Link>
             <Link
               href={PRIMARY_CTAS.institution.href}
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-[var(--color-border)] px-6 py-3 text-sm font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-surface-hover)] sm:justify-start"
+              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-primary-deep)] transition-all hover:scale-[1.01] hover:bg-[var(--color-primary-soft)]/30 sm:justify-start shadow-sm"
             >
               Partner With Us <span aria-hidden>→</span>
             </Link>

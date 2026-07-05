@@ -26,13 +26,13 @@ export function AudienceCardsSection() {
                 href={aud.href}
                 className="group flex h-full flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-solid)] p-8 transition-all hover:-translate-y-1 hover:border-[var(--color-sky)]/60 hover:shadow-[var(--shadow-lift)] md:p-10"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-sky)]">
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-metallic-gold">
                   {aud.eyebrow}
                 </p>
                 <h3 className="mt-5 flex-1 font-serif text-xl font-medium leading-snug text-[var(--color-fg)] md:text-2xl">
                   {aud.title}
                 </h3>
-                <p className="mt-6 text-sm font-medium text-[var(--color-fg)] transition-transform group-hover:translate-x-1">
+                <p className="mt-6 text-sm font-bold text-[var(--color-primary-deep)] transition-transform group-hover:translate-x-1">
                   {aud.label}
                 </p>
               </Link>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, LinkButton, Pill, Button } from "@/components/ui";
+import { CompleteSessionButton } from "@/components/CompleteSessionButton";
 
 type Attendee = { id: string; name: string };
 type StudentOption = { id: string; name: string; email: string };
@@ -78,23 +79,29 @@ export function SessionsClient({
           <div className="grid gap-3">
             {live.map((s) => (
               <Card key={s.id}>
-                <CardBody className="flex flex-wrap items-center gap-4">
-                  <div className="flex-1 min-w-[200px]">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Pill tone="coral">LIVE</Pill>
-                      <Pill tone="primary">{s.type === "group" ? "Group" : "1-on-1"}</Pill>
-                      {s.elapsedHms && (
-                        <span className="font-mono text-xs text-ink-faint">{s.elapsedHms}</span>
-                      )}
+                <CardBody className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Pill tone="coral">LIVE</Pill>
+                        <Pill tone="primary">{s.type === "group" ? "Group" : "1-on-1"}</Pill>
+                        {s.elapsedHms && (
+                          <span className="font-mono text-xs text-ink-faint">{s.elapsedHms}</span>
+                        )}
+                      </div>
+                      <div className="font-serif text-lg mt-1">{s.title}</div>
+                      <div className="text-sm text-ink-soft mt-1">
+                        {attendeesLabel(s.attendees, s.type)} · {s.startedAgoMin ?? 0}m in
+                      </div>
                     </div>
-                    <div className="font-serif text-lg mt-1">{s.title}</div>
-                    <div className="text-sm text-ink-soft mt-1">
-                      {attendeesLabel(s.attendees, s.type)} · {s.startedAgoMin ?? 0}m in
-                    </div>
+                    <LinkButton href={`/session/${s.id}`} size="sm" target="_blank">
+                      Join session →
+                    </LinkButton>
                   </div>
-                  <LinkButton href={s.meetLink || `/session/${s.id}`} size="sm" target="_blank">
-                    Join session →
-                  </LinkButton>
+                  <div className="border-t border-rule/35 pt-2 flex items-center justify-between text-xs text-ink-soft">
+                    <span>Finished the mentoring session? Mark it as completed:</span>
+                    <CompleteSessionButton sessionId={s.id} sessionTitle={s.title} role="mentor" />
+                  </div>
                 </CardBody>
               </Card>
             ))}
@@ -128,7 +135,7 @@ export function SessionsClient({
                     </div>
                   </div>
                   {s.meetLink ? (
-                    <LinkButton href={s.meetLink} size="sm" variant="ghost" target="_blank">
+                    <LinkButton href={`/session/${s.id}`} size="sm" variant="ghost" target="_blank">
                       Join →
                     </LinkButton>
                   ) : (
@@ -189,7 +196,7 @@ function CreateSessionModal({
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
-  const [result, setResult] = useState<{ meetLink: string } | null>(null);
+  const [result, setResult] = useState<{ id: string; meetLink: string } | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [sessionType, setSessionType] = useState<"1-on-1" | "Group">("1-on-1");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
@@ -301,14 +308,28 @@ function CreateSessionModal({
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 text-primary text-2xl">&#10003;</div>
             <div className="font-serif text-lg mb-2">Session created!</div>
             <p className="text-sm text-ink-soft mb-4">
-              Your Jitsi Meet room is ready. Share the link with your student.
+              Your mentoring session has been scheduled successfully.
             </p>
-            <div className="bg-secondary-soft rounded-card px-4 py-3 mb-4 break-all text-sm font-mono">
-              {result.meetLink}
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-card p-4 mb-4 text-left text-xs text-amber-800 space-y-2">
+              <p className="font-bold">⚠️ IMPORTANT SECURITY REQUIREMENT:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Do <strong>NOT</strong> share the direct Jitsi link with your student.</li>
+                <li>Your student will automatically receive a secure Hitaishi portal access link.</li>
+                <li><strong>Join the Hitaishi Session Room first</strong> (before the student) to claim moderator privileges and secure the room.</li>
+              </ul>
             </div>
+
+            <div className="text-xs text-ink-soft text-left mb-1 font-mono uppercase tracking-wider font-semibold">
+              Hitaishi Session Portal Link:
+            </div>
+            <div className="bg-secondary-soft rounded-card px-4 py-3 mb-5 break-all text-sm font-mono text-left select-all">
+              {typeof window !== "undefined" ? window.location.origin : ""}/session/{result.id}
+            </div>
+
             <div className="flex items-center gap-3 justify-center">
-              <a href={result.meetLink} target="_blank" rel="noopener noreferrer">
-                <Button size="sm">Open Meet room</Button>
+              <a href={`/session/${result.id}`} target="_blank" rel="noopener noreferrer">
+                <Button size="sm">Open Session Room</Button>
               </a>
               <button
                 type="button"

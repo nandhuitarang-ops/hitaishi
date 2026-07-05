@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Stepper, Card, CardBody, Field, Input, Select, Textarea, Button } from "@/components/ui";
 
 const STEPS = [
-  { label: "Profile", emoji: "👤", color: "#059669" },
+  { label: "Profile", emoji: "👤", color: "#F4CA3E" },
   { label: "Subjects", emoji: "📚", color: "#7c3aed" },
   { label: "Availability", emoji: "🗓️", color: "#2563eb" },
 ];
@@ -40,7 +40,7 @@ export function MentorOnboardingClient() {
   const [city, setCity] = useState("");
   const [gender, setGender] = useState("");
   const [jeeRank, setJeeRank] = useState("");
-  const [institute, setInstitute] = useState("IIT Bombay");
+  const [institute, setInstitute] = useState("");
   const [branch, setBranch] = useState("");
   const [gradYear, setGradYear] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -90,7 +90,7 @@ export function MentorOnboardingClient() {
   const validateStep = () => {
     setErrorMsg(null);
     if (step === 0) {
-      if (!fullName.trim() || !email.trim() || !phone.trim() || !city.trim() || !branch.trim() || !gradYear.trim()) {
+      if (!fullName.trim() || !email.trim() || !phone.trim() || !city.trim() || !institute.trim() || !branch.trim() || !gradYear.trim()) {
         setErrorMsg("Please fill in all required fields.");
         return false;
       }
@@ -295,15 +295,8 @@ export function MentorOnboardingClient() {
                   <Field label="Phone / WhatsApp" required>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" required />
                   </Field>
-                  <Field label="IIT" required>
-                    <Select value={institute} onChange={(e) => setInstitute(e.target.value)} required>
-                      <option>IIT Bombay</option>
-                      <option>IIT Delhi</option>
-                      <option>IIT Madras</option>
-                      <option>IIT Kanpur</option>
-                      <option>IIT Kharagpur</option>
-                      <option>Other IIT</option>
-                    </Select>
+                  <Field label="Graduated From" required>
+                    <Input value={institute} onChange={(e) => setInstitute(e.target.value)} placeholder="IIT Bombay, BITS Pilani, etc." required />
                   </Field>
                   <Field label="Branch" required>
                     <Input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="Computer Science" required />

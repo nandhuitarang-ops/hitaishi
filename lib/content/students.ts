@@ -3,7 +3,7 @@ export const STUDENTS_PAGE = {
   headline: "Everything you need to crack JEE — in one person.",
   intro:
     "Hitaishi gives every JEE aspirant access to a dedicated 1-on-1 mentor — an IITian or top ranker who knows what it actually takes. Not group lectures. Not recorded videos. Real conversations, real guidance, built entirely around you.",
-  pullQuote: "Coaching gives you the syllabus. Hitaishi gives you the edge.",
+  pullQuote: "From aspirations to achievements — with guidance",
   formAnchor: "get-mentor",
   formHeadline: "Get your mentor.",
   formSubhead:

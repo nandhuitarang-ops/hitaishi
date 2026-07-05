@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { createMeeting } from "@/lib/meet";
 import { db } from "@/lib/db";
-import { assignments, sessionParticipants, sessions, users } from "@/db/schema";
+import { assignments, profiles, sessionParticipants, sessions, users } from "@/db/schema";
 import { and, eq, inArray, isNull } from "drizzle-orm";
+import { sendSessionScheduledEmail } from "@/lib/emails/email-service";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -59,14 +60,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid scheduledAt" }, { status: 400 });
     }
 
-    // Defense-in-depth: a mentor can only schedule sessions for students they
-    // are *actively* assigned to. The page filters students the same way, but
-    // the API must re-check — a direct call could otherwise target students
-    // the mentor has no relationship with.
     const validStudents = await db
-      .select({ id: users.id })
+      .select({
+        id: users.id,
+        email: users.email,
+        fullName: profiles.fullName,
+      })
       .from(users)
       .innerJoin(assignments, eq(assignments.studentId, users.id))
+      .leftJoin(profiles, eq(profiles.userId, users.id))
       .where(
         and(
           eq(users.role, "student"),
@@ -117,6 +119,59 @@ export async function POST(req: NextRequest) {
 
       return row!;
     });
+
+    // Send email notifications
+    try {
+      const dateStr = startTime.toLocaleDateString("en-IN", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      const formatTime = (d: Date) => {
+        return d.toLocaleTimeString("en-IN", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+      };
+      const endTime = new Date(startTime.getTime() + body.durationMinutes! * 60000);
+      const timeStr = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hitaishii.com";
+      const joinLink = `${appUrl}/session/${created.id}`;
+      const mentorName = user.fullName ?? user.email.split("@")[0];
+
+      const studentNames: string[] = [];
+      for (const student of validStudents as any[]) {
+        const studentName = student.fullName ?? student.email.split("@")[0];
+        studentNames.push(studentName);
+        sendSessionScheduledEmail(
+          student.email,
+          studentName,
+          mentorName,
+          false,
+          dateStr,
+          timeStr,
+          joinLink
+        ).catch((e) => console.error("Failed to send session email to student:", e));
+      }
+
+      const partnerName = studentNames.length > 1
+        ? `${studentNames[0]} & ${studentNames.length - 1} other(s)`
+        : (studentNames[0] || "Student");
+
+      sendSessionScheduledEmail(
+        user.email,
+        mentorName,
+        partnerName,
+        true,
+        dateStr,
+        timeStr,
+        joinLink
+      ).catch((e) => console.error("Failed to send session email to mentor:", e));
+    } catch (emailErr) {
+      console.error("Failed to send session creation emails:", emailErr);
+    }
 
     return NextResponse.json({
       success: true,

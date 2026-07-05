@@ -6,67 +6,67 @@
    ============================================================ */
 
 @theme {
-  /* ---- Landing page: Surfaces (warm off-white, green) ---- */
-  --color-void: #ebefea;
-  --color-background: #f7faf5;
-  --color-background-alt: #f0f4f0;
+  /* ---- Landing page: Surfaces (warm off-white, gold) ---- */
+  --color-void: #f5f2e6;
+  --color-background: #fdfcfb;
+  --color-background-alt: #f7f5ec;
   --color-surface-solid: #ffffff;
-  --color-surface-hover: #f0f4f0;
+  --color-surface-hover: #f5f2e6;
 
-  /* ---- Landing page: Text (deep green-black) ---- */
-  --color-fg: #181d1a;
-  --color-fg-muted: #3f4943;
-  --color-fg-subtle: #6f7a72;
+  /* ---- Landing page: Text (deep charcoal-gold) ---- */
+  --color-fg: #1a1914;
+  --color-fg-muted: #47453b;
+  --color-fg-subtle: #787567;
 
-  /* ---- Landing page: Accents (green) ---- */
-  --color-accent: #2f7d5c;
-  --color-accent-hover: #266649;
-  --color-sky: #2f7d5c;
-  --color-sky-hover: #266649;
-  --color-sky-soft: #d9ebe2;
-  --color-sky-glow: rgba(47, 125, 92, 0.18);
-  --color-accent-glow: rgba(47, 125, 92, 0.18);
-  --color-cyan: #2f7d5c;
-  --color-violet: #0b6445;
+  /* ---- Landing page: Accents (Arabian Gold) ---- */
+  --color-accent: #F4CA3E;
+  --color-accent-hover: #E3B427;
+  --color-sky: #F4CA3E;
+  --color-sky-hover: #E3B427;
+  --color-sky-soft: #FCF6D6;
+  --color-sky-glow: rgba(244, 202, 62, 0.12);
+  --color-accent-glow: rgba(244, 202, 62, 0.12);
+  --color-cyan: #F4CA3E;
+  --color-violet: #C29618;
 
-  /* ---- Main site: Surfaces (warm off-white, green) ---- */
-  --color-surface: #f7faf5;
+  /* ---- Main site: Surfaces (warm off-white, gold) ---- */
+  --color-surface: #fdfcfb;
   --color-surface-card: #ffffff;
-  --color-surface-elevated: #f0f4f0;
-  --color-surface-dim: #ebefea;
+  --color-surface-elevated: #f7f5ec;
+  --color-surface-dim: #f5f2e6;
 
-  /* ---- Main site: Text (deep green-black) ---- */
-  --color-ink: #181d1a;
-  --color-ink-soft: #3f4943;
-  --color-ink-faint: #6f7a72;
+  /* ---- Main site: Text (deep charcoal-gold) ---- */
+  --color-ink: #1a1914;
+  --color-ink-soft: #47453b;
+  --color-ink-faint: #787567;
 
-  /* ---- Main site: Accents (green) ---- */
-  --color-primary: #2f7d5c;
-  --color-primary-hover: #266649;
-  --color-primary-soft: #d9ebe2;
-  --color-primary-deep: #0b6445;
-  --color-on-primary: #ffffff;
+  /* ---- Main site: Accents (Arabian Gold) ---- */
+  --color-primary: #F4CA3E;
+  --color-primary-hover: #E3B427;
+  --color-primary-soft: #FCF6D6;
+  --color-primary-deep: #C29618;
+  --color-on-primary: #181d1a;
   --color-secondary: #e87b5a;
   --color-secondary-soft: #ffdbd1;
 
   /* ---- Main site: Rules / borders ---- */
-  --color-rule: #e3eae3;
-  --color-rule-strong: #c7d4c7;
+  --color-rule: #ede9d7;
+  --color-rule-strong: #dcd6ba;
 
   /* ---- Shared: Status ---- */
   --color-error: #ba1a1a;
   --color-error-soft: #ffdad6;
-  --color-success: #0b6445;
+  --color-success: #9D750F;
   --color-warning: #9d6b00;
 
   /* ---- Landing page: Glass ---- */
-  --glass-bg: rgba(247, 250, 245, 0.78);
-  --glass-border: rgba(24, 29, 26, 0.08);
-  --glass-shadow: 0 20px 50px rgba(24, 29, 26, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(253, 252, 251, 0.78);
+  --glass-border: rgba(26, 25, 20, 0.08);
+  --glass-shadow: 0 20px 50px rgba(26, 25, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   /* ---- Borders (landing page) ---- */
-  --color-border: #e3eae3;
-  --color-border-hover: rgba(47, 125, 92, 0.5);
+  --color-border: #ede9d7;
+  --color-border-hover: rgba(244, 202, 62, 0.4);
 
   /* ---- Typography ---- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -77,9 +77,9 @@
   --shadow-soft: 0 1px 3px rgba(24, 29, 26, 0.06), 0 1px 2px rgba(24, 29, 26, 0.04);
   --shadow-lift: 0 24px 50px rgba(24, 29, 26, 0.12), 0 6px 14px rgba(24, 29, 26, 0.06);
   --shadow-overlay: 0 4px 16px rgba(24, 29, 26, 0.08);
-  --shadow-glow-cyan: 0 0 36px rgba(47, 125, 92, 0.22);
-  --shadow-glow-accent: 0 0 36px rgba(47, 125, 92, 0.22);
-  --shadow-neon: 0 6px 22px rgba(47, 125, 92, 0.28);
+  --shadow-glow-cyan: 0 0 36px rgba(244, 202, 62, 0.18);
+  --shadow-glow-accent: 0 0 36px rgba(244, 202, 62, 0.18);
+  --shadow-neon: 0 6px 22px rgba(244, 202, 62, 0.2);
 
   /* ---- Radii ---- */
   --radius-card: 16px;
@@ -586,3 +586,28 @@ html.lenis, html.lenis body {
     transform: none;
   }
 }
+
+/* ============================================================
+   METALLIC GOLD SHIMMER EFFECTS
+   ============================================================ */
+
+@keyframes gold-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@utility bg-metallic-gold {
+  background: linear-gradient(135deg, #c29618 0%, #f4ca3e 30%, #fff3b8 50%, #f4ca3e 70%, #9d750f 100%);
+  background-size: 200% 200%;
+  animation: gold-shimmer 6s ease infinite;
+}
+
+@utility text-metallic-gold {
+  background: linear-gradient(135deg, #c29618 0%, #f4ca3e 30%, #fff3b8 50%, #f4ca3e 70%, #9d750f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gold-shimmer 6s ease infinite;
+}
+

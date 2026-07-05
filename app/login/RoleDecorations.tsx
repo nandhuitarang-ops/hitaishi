@@ -10,7 +10,7 @@ export function StudentDecorations() {
   return (
     <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0" aria-hidden="true">
       {/* Ambient glows */}
-      <div className="absolute -top-[200px] left-[15%] w-[500px] h-[500px] rounded-full bg-emerald-400/8 blur-[120px]" />
+      <div className="absolute -top-[200px] left-[15%] w-[500px] h-[500px] rounded-full bg-[var(--color-primary)]/8 blur-[120px]" />
       <div className="absolute -bottom-[200px] right-[10%] w-[500px] h-[500px] rounded-full bg-amber-400/6 blur-[120px]" />
 
       {/* Top-left dotted block */}
@@ -164,8 +164,8 @@ export function AdminDecorations() {
 
       {/* Top-right shield icon */}
       <div className="absolute top-[13%] right-[6%] hidden lg:block">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200/40 flex items-center justify-center shadow-soft">
-          <svg className="w-7 h-7 text-emerald-500/50" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-soft)]/20 border border-[var(--color-primary)]/30 flex items-center justify-center shadow-soft">
+          <svg className="w-7 h-7 text-[var(--color-primary)]/50" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
           </svg>
         </div>
@@ -174,7 +174,7 @@ export function AdminDecorations() {
       {/* Right: users/activity dots */}
       <div className="absolute right-[7%] bottom-[18%] hidden lg:block">
         <div className="flex -space-x-2">
-          {["bg-primary/30", "bg-secondary/30", "bg-emerald-500/30", "bg-amber-500/30"].map((bg, i) => (
+          {["bg-primary/30", "bg-secondary/30", "bg-[var(--color-primary)]/30", "bg-amber-500/30"].map((bg, i) => (
             <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-white flex items-center justify-center`}>
               <span className="text-[8px] font-bold text-white/80">{String.fromCharCode(65 + i)}</span>
             </div>

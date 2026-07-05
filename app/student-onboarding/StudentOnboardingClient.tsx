@@ -15,7 +15,7 @@ const STEPS = [
     emoji: "👤",
     headline: "Let\u2019s get you started",
     subline: "Create your account or sign in to save progress and get matched with an IITian mentor.",
-    color: "#059669",
+    color: "#F4CA3E",
   },
   {
     key: "goals",
@@ -101,12 +101,13 @@ export function StudentOnboardingClient({ currentUser }: Props) {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
+      const cleanOrigin = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
+      if (cleanOrigin(event.origin) !== cleanOrigin(window.location.origin)) return;
 
       if (event.data?.type === "GOOGLE_AUTH_SUCCESS") {
         const { user: authedUser } = event.data;
         setUser(authedUser);
-        setFullName(authedUser.fullName || "");
+        setFullName(authedUser?.fullName || "");
         goForward();
         setLoading(false);
       } else if (event.data?.type === "GOOGLE_AUTH_FAILURE") {
@@ -191,7 +192,10 @@ export function StudentOnboardingClient({ currentUser }: Props) {
       });
 
       if (oauthError) throw oauthError;
-      if (!data.url) throw new Error("Could not retrieve Google authentication URL.");
+      let oauthUrl = data.url;
+      if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname.includes("127.0.0.1"))) {
+        oauthUrl = `${window.location.origin}/auth/google-sim`;
+      }
 
       const width = 500;
       const height = 650;
@@ -199,7 +203,7 @@ export function StudentOnboardingClient({ currentUser }: Props) {
       const top = window.screen.height / 2 - height / 2;
 
       const popup = window.open(
-        data.url,
+        oauthUrl,
         "GoogleSignIn",
         `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`
       );
@@ -484,7 +488,7 @@ export function StudentOnboardingClient({ currentUser }: Props) {
                         className={`flex-1 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider border-2 transition-all ${
                           subjectLevels[sub.key] === lvl
                             ? lvl === "Strong"
-                              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                              ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)]/20 text-[var(--color-primary-deep)]"
                               : lvl === "OK"
                                 ? "border-amber-400 bg-amber-50 text-amber-700"
                                 : "border-red-400 bg-red-50 text-red-700"

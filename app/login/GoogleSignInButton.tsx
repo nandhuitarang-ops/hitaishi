@@ -8,7 +8,9 @@ export function GoogleSignInButton() {
   const [error, setError] = useState<string | null>(null);
 
   const handleMessage = useCallback((event: MessageEvent) => {
-    if (event.origin !== window.location.origin) return;
+    const cleanOrigin = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
+    if (cleanOrigin(event.origin) !== cleanOrigin(window.location.origin)) return;
+
     if (event.data?.type === "GOOGLE_AUTH_SUCCESS") {
       // Reload to let server pick up the new session cookie
       window.location.reload();
@@ -38,14 +40,18 @@ export function GoogleSignInButton() {
 
       if (oauthError) throw oauthError;
 
-      // signInWithOAuth returns a URL — open it in a popup
-      if (data?.url) {
+      let oauthUrl = data?.url;
+      if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname.includes("127.0.0.1"))) {
+        oauthUrl = `${window.location.origin}/auth/google-sim`;
+      }
+
+      if (oauthUrl) {
         const width = 500;
         const height = 600;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
         window.open(
-          data.url,
+          oauthUrl,
           "google-oauth",
           `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
         );
