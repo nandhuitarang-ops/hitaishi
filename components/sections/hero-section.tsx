@@ -38,12 +38,8 @@ export function HeroSection() {
           </Reveal>
           
           <Reveal delay={100}>
-            <h1 className="mt-8 font-serif text-5xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-tight text-[var(--color-fg)] uppercase">
-              The Mentor
-              <br />
-              You Wished
-              <br />
-              You Had
+            <h1 className="mt-8 font-serif text-4xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight text-[var(--color-fg)] uppercase">
+              The Mentor You Wished You Had
             </h1>
           </Reveal>
 
