@@ -1,5 +1,5 @@
 export const HERO = {
-  eyebrow: "JEE Mentorship · Flexible · Institutional & Personal",
+  eyebrow: "YOUR WELLWISHER",
   headline: "The mentor you wished you had for JEE.",
   subhead:
     "Hitaishi pairs JEE aspirants with IITian & top-ranker mentors — on their schedule, around their coaching, wherever they are. For students, directly. For institutions, seamlessly integrated.",

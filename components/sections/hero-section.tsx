@@ -26,14 +26,15 @@ export function HeroSection() {
             <Image
               src="/images/logo-icon-transparent.png"
               alt="Hitaishii Crest"
-              width={56}
-              height={56}
-              className="h-14 w-auto object-contain mx-auto"
+              width={80}
+              height={80}
+              className="h-20 w-auto object-contain mx-auto"
+              style={{ height: "auto" }}
             />
           </Reveal>
           <Reveal delay={50}>
             <p className="text-sm md:text-base font-extrabold uppercase tracking-[0.25em] text-metallic-gold">
-              JEE Mentorship · Flexible · Institutional & Personal
+              YOUR WELLWISHER
             </p>
           </Reveal>
           
