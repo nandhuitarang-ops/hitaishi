@@ -4,7 +4,7 @@ export const HERO = {
   subhead:
     "Hitaishi pairs JEE aspirants with IITian & top-ranker mentors — on their schedule, around their coaching, wherever they are. For students, directly. For institutions, seamlessly integrated.",
   trustLine: "Mentors from IITs & NITs · Flexible scheduling · Works alongside any coaching",
-  pullQuote: "Coaching gives you the syllabus. Hitaishi gives you the edge.",
+  pullQuote: "From aspirations to achievements — with guidance",
   image: {
     src: "/images/hitaishi/student-night-study.png",
     alt: "A JEE aspirant studying late at a desk under a warm lamp — the moment a wellwisher steps in.",
