@@ -109,6 +109,7 @@ export async function Shell({
                   width={192}
                   height={80}
                   className="w-full h-auto object-contain max-h-20 scale-[1.08] origin-center"
+                  style={{ height: "auto" }}
                   priority
                 />
               </Link>

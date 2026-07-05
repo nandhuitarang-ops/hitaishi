@@ -27,14 +27,26 @@ function fmtDate(d: string) {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   const isTomorrow = dt.toDateString() === tomorrow.toDateString();
-  const time = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  if (isToday) return `Today · ${time}`;
-  if (isTomorrow) return `Tomorrow · ${time}`;
-  return `${dt.toLocaleDateString([], { day: "2-digit", month: "short" })} · ${time}`;
+
+  let hours = dt.getHours();
+  const minutes = dt.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const timeStr = `${hours}:${minutes} ${ampm}`;
+
+  if (isToday) return `Today · ${timeStr}`;
+  if (isTomorrow) return `Tomorrow · ${timeStr}`;
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const dateStr = `${dt.getDate().toString().padStart(2, "0")} ${months[dt.getMonth()]}`;
+  return `${dateStr} · ${timeStr}`;
 }
 
 function fmtDateShort(d: string) {
-  return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const dt = new Date(d);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${dt.getDate().toString().padStart(2, "0")} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
 }
 
 function attendeesLabel(a: Attendee[], type: string) {
