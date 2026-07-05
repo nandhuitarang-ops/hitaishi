@@ -53,7 +53,7 @@ export function StudentFeedbackForm({ mentorName, sessionId, sessionTitle }: Pro
       <div className="text-center py-6">
         <p className="text-3xl">✨</p>
         <h4 className="font-serif text-xl font-medium text-ink mt-2">Feedback Submitted!</h4>
-        <p className="text-sm text-ink-soft mt-1">Thank you. Your rating and comments have been shared with your mentor and administrators.</p>
+        <p className="text-sm text-ink-soft mt-1">Thank you. Your rating and comments have been shared with administrators.</p>
         <button
           onClick={() => setSuccess(false)}
           className="mt-4 text-xs font-semibold text-primary hover:underline"

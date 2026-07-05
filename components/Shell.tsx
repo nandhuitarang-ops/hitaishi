@@ -17,8 +17,7 @@ type MentorNav =
   | "doubts"
   | "sessions"
   | "calendar"
-  | "resources"
-  | "feedback";
+  | "resources";
 type AdminNav =
   | "dashboard"
   | "students"
@@ -59,7 +58,6 @@ const NAV = {
     { key: "sessions", label: "Sessions", href: "/mentor/sessions", icon: "▢" },
     { key: "calendar", label: "Calendar", href: "/mentor/calendar", icon: "▦" },
     { key: "resources", label: "Resources", href: "/mentor/resources", icon: "❒" },
-    { key: "feedback", label: "Student Feedback", href: "/mentor/feedback", icon: "★" },
   ],
   admin: [
     { key: "dashboard", label: "Overview", href: "/admin/dashboard", icon: "◐" },

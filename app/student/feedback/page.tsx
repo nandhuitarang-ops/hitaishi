@@ -93,7 +93,7 @@ export default async function StudentFeedbackPage({ searchParams }: SearchProps)
               🌟 <strong>What to look for:</strong> Did your mentor explain concepts clearly? Were they helpful, punctual, and encouraging during your sessions?
             </p>
             <p>
-              🔒 <strong>Confidentiality:</strong> Individual ratings and comments are shared directly with the mentors to help them adjust, and with site administrators to ensure safety and quality standards.
+              🔒 <strong>Confidentiality:</strong> Individual ratings and comments are shared directly with site administrators to ensure safety and quality standards.
             </p>
           </CardBody>
         </Card>
