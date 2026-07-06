@@ -65,6 +65,14 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
+
+        {/* Login Link */}
+        <Link
+          href="/login"
+          className="hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface-solid)]/40 px-3.5 py-1 text-xs font-semibold text-[var(--color-fg-muted)] backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-[var(--color-primary)]/60 hover:bg-[var(--color-primary-soft)]/30 hover:text-[var(--color-primary-deep)] hover:shadow-sm md:inline-flex md:items-center"
+        >
+          Login
+        </Link>
  
         {/* Single primary CTA */}
         <Link
@@ -111,6 +119,14 @@ export function SiteHeader() {
               className="flex min-h-[44px] items-center rounded-xl px-3 text-base font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-surface-hover)]"
             >
               Become a Mentor
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="group flex min-h-[44px] items-center justify-between rounded-xl px-3 text-base font-semibold text-[var(--color-fg)] transition-colors hover:bg-[var(--color-surface-hover)]"
+            >
+              <span>Login</span>
+              <span className="mr-1 h-2 w-2 rounded-full bg-[var(--color-primary)] transition-all group-hover:scale-125 group-hover:bg-[var(--color-primary-deep)]" />
             </Link>
             <Link
               href={PRIMARY_CTAS.student.href}
