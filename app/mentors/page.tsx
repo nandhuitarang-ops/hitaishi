@@ -4,6 +4,7 @@ import { MentorHeroSection } from "@/components/sections/mentor/mentor-hero-sect
 import { MentorRoleSection } from "@/components/sections/mentor/mentor-role-section";
 import { WhyMentorSection } from "@/components/sections/mentor/why-mentor-section";
 import { WhoCanMentorSection } from "@/components/sections/mentor/who-can-mentor-section";
+import { TestimonialsSection } from "@/components/sections/mentor/testimonials-section";
 import { MentorCtaSection } from "@/components/sections/mentor/mentor-cta-section";
 import type { Metadata } from "next";
 
@@ -29,6 +30,7 @@ export default function BecomeMentorPage() {
         <MentorRoleSection />
         <WhyMentorSection />
         <WhoCanMentorSection />
+        <TestimonialsSection />
         <MentorCtaSection />
       </main>
       <SiteFooter />
